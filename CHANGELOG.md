@@ -45,3 +45,11 @@ pip install shared_models-0.1.1-py3-none-any.whl
 1. Обновите пакет shared-models
 2. Убедитесь, что PostgreSQL поддерживает pgvector 0.2.x
 3. При необходимости выполните миграции: `alembic upgrade head`
+
+## [0.1.2] - 2025-07-28
+### Added
+- Новая функциональность
+### Changed  
+- Изменения в существующем коде
+### Fixed
+- Исправленные ошибки
