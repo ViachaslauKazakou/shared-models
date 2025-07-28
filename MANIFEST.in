@@ -1,0 +1,9 @@
+include README.md
+include LICENSE
+include MIGRATIONS.md
+include .env.example
+include alembic.ini
+recursive-include shared_models *.py
+recursive-include alembic *.py *.mako
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]

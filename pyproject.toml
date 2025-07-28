@@ -1,0 +1,49 @@
+[project]
+name = "shared-models"
+version = "0.1.0"
+description = "Shared SQLAlchemy models and schemas for microservices architecture"
+authors = [
+    {name = "Viachaslau_Kazakou", email = "Viachaslau.Kazakou@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "sqlalchemy>=2.0.41,<3.0.0",
+    "alembic>=1.16.4,<2.0.0", 
+    "pydantic>=2.11.7,<3.0.0",
+    "pgvector>=0.4.1,<0.5.0",
+    "python-dotenv>=1.1.1,<2.0.0",
+    "psycopg2-binary>=2.9.10,<3.0.0"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/ViachaslauKazakou/shared-models"
+"Repository" = "https://github.com/ViachaslauKazakou/shared-models"
+"Bug Reports" = "https://github.com/ViachaslauKazakou/shared-models/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["shared_models*"]
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+sqlalchemy = ">=2.0.41,<3.0.0"
+alembic = ">=1.16.4,<2.0.0"
+pydantic = ">=2.11.7,<3.0.0"
+pgvector = ">=0.4.1,<0.5.0"
+python-dotenv = ">=1.1.1,<2.0.0"
+psycopg2-binary = ">=2.9.10,<3.0.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+setuptools = "^80.9.0"
+wheel = "^0.45.1"
+build = "^1.2.2.post1"
+
+[tool.black]
+line-length = 120
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
