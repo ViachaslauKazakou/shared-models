@@ -1,6 +1,6 @@
 [project]
 name = "shared-models"
-version = "0.1.0"
+version = "0.1.1"
 description = "Shared SQLAlchemy models and schemas for microservices architecture"
 authors = [
     {name = "Viachaslau_Kazakou", email = "Viachaslau.Kazakou@gmail.com"}
@@ -12,7 +12,7 @@ dependencies = [
     "sqlalchemy>=2.0.41,<3.0.0",
     "alembic>=1.16.4,<2.0.0", 
     "pydantic>=2.11.7,<3.0.0",
-    "pgvector>=0.4.1,<0.5.0",
+    "pgvector>=0.2.4,<0.3.0",
     "python-dotenv>=1.1.1,<2.0.0",
     "psycopg2-binary>=2.9.10,<3.0.0"
 ]
@@ -31,7 +31,7 @@ python = ">=3.12"
 sqlalchemy = ">=2.0.41,<3.0.0"
 alembic = ">=1.16.4,<2.0.0"
 pydantic = ">=2.11.7,<3.0.0"
-pgvector = ">=0.4.1,<0.5.0"
+pgvector = ">=0.2.4,<0.3.0"
 python-dotenv = ">=1.1.1,<2.0.0"
 psycopg2-binary = ">=2.9.10,<3.0.0"
 

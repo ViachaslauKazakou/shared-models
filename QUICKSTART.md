@@ -14,7 +14,7 @@ pip install git+https://github.com/ViachaslauKazakou/shared-models.git
 
 **Вариант B: Локальная установка wheel файла**
 ```bash
-pip install shared_models-0.1.0-py3-none-any.whl
+pip install shared_models-0.1.1-py3-none-any.whl
 ```
 
 **Вариант C: Через Poetry**

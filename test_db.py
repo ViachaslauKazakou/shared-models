@@ -31,38 +31,50 @@ def create_test_data():
     """Создание тестовых данных."""
     db = SessionLocal()
     try:
-        # Создаем тестового пользователя
-        test_user = User(
-            username="test_user",
-            firstname="Тест",
-            lastname="Пользователь",
-            password="hashed_password_here",
-            email="test@example.com",
-            user_type=UserRole.user,
-            status=Status.active
-        )
-        db.add(test_user)
-        db.commit()
-        db.refresh(test_user)
+        # Проверяем, существует ли уже пользователь
+        existing_user = db.query(User).filter(User.email == "test@example.com").first()
+        if existing_user:
+            print(f"✅ Пользователь уже существует: {existing_user.username} (ID: {existing_user.id})")
+            test_user = existing_user
+        else:
+            # Создаем тестового пользователя
+            test_user = User(
+                username="test_user",
+                firstname="Тест",
+                lastname="Пользователь",
+                password="hashed_password_here",
+                email="test@example.com",
+                user_type=UserRole.user,
+                status=Status.active
+            )
+            db.add(test_user)
+            db.commit()
+            db.refresh(test_user)
+            print(f"✅ Создан тестовый пользователь: {test_user.username} (ID: {test_user.id})")
         
-        print(f"✅ Создан тестовый пользователь: {test_user.username} (ID: {test_user.id})")
+        # Проверяем, существует ли уже тема
+        existing_topic = db.query(Topic).filter(Topic.title == "Тестовая тема").first()
+        if existing_topic:
+            print(f"✅ Тема уже существует: {existing_topic.title} (ID: {existing_topic.id})")
+            test_topic = existing_topic
+        else:
+            # Создаем тестовую тему
+            test_topic = Topic(
+                title="Тестовая тема",
+                description="Это тестовая тема для проверки работы базы данных",
+                user_id=test_user.id,
+                is_active=True
+            )
+            db.add(test_topic)
+            db.commit()
+            db.refresh(test_topic)
+            print(f"✅ Создана тестовая тема: {test_topic.title} (ID: {test_topic.id})")
         
-        # Создаем тестовую тему
-        test_topic = Topic(
-            title="Тестовая тема",
-            description="Это тестовая тема для проверки работы базы данных",
-            user_id=test_user.id,
-            is_active=True
-        )
-        db.add(test_topic)
-        db.commit()
-        db.refresh(test_topic)
-        
-        print(f"✅ Создана тестовая тема: {test_topic.title} (ID: {test_topic.id})")
-        
-        # Создаем тестовое сообщение
+        # Создаем тестовое сообщение (с уникальным содержимым по времени)
+        from datetime import datetime
+        message_content = f"Тестовое сообщение от {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         test_message = Message(
-            content="Это тестовое сообщение для проверки работы базы данных",
+            content=message_content,
             author_name=test_user.username,
             topic_id=test_topic.id,
             user_id=test_user.id
