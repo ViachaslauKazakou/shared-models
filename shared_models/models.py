@@ -153,7 +153,6 @@ class UserMessageExample(Base):
     content: Mapped[str] = mapped_column(Text)
     thread_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     reply_to: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, index=True)
-    timestamp: Mapped[datetime] = mapped_column()
 
     # Эмбеддинги для similarity search
     content_embedding: Mapped[Optional[Vector]] = mapped_column(Vector(1536), nullable=True)
@@ -162,6 +161,4 @@ class UserMessageExample(Base):
     # Метаданные и служебные поля
     extra_metadata: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
     source_file: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
