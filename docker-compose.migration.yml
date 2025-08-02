@@ -1,0 +1,66 @@
+# Docker Compose для разработки с автоматическими миграциями
+services:
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: forum_postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-pgvector.sql:/docker-entrypoint-initdb.d/init-pgvector.sql
+    networks:
+      - ai_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docker -d postgres"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
+  # Контейнер для выполнения миграций
+  migration:
+    build: 
+      context: .
+      dockerfile: Dockerfile.migration
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://docker:docker@postgres:5432/postgres
+      - DB_HOST=postgres
+      - DB_NAME=postgres
+      - DB_USER=docker
+      - DB_PASSWORD=docker
+      - DB_PORT=5432
+    volumes:
+      - .:/app
+    working_dir: /app
+    networks:
+      - ai_network
+    command: ["./scripts/entrypoint.sh"]
+
+  # Пример основного приложения (раскомментируйте когда будет готово)
+  # app:
+  #   build: .
+  #   depends_on:
+  #     - migration
+  #   environment:
+  #     - DATABASE_URL=postgresql+psycopg2://docker:docker@postgres:5432/postgres
+  #   volumes:
+  #     - .:/app
+  #   networks:
+  #     - ai_network
+  #   command: ["python", "main.py"]
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  ai_network:
+    driver: bridge

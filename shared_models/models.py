@@ -31,6 +31,7 @@ class Topic(Base):
     # Связи
     user: Mapped["User"] = relationship("User", back_populates="topics")
     messages: Mapped[List["Message"]] = relationship("Message", back_populates="topic", cascade="all, delete-orphan")
+    embeddings: Mapped[List["MessageEmbedding"]] = relationship("MessageEmbedding", back_populates="topic", cascade="all, delete-orphan")
 
 
 class Message(Base):
@@ -54,6 +55,7 @@ class Message(Base):
     user: Mapped["User"] = relationship("User", back_populates="messages")
     parent: Mapped[Optional["Message"]] = relationship("Message", remote_side=[id], back_populates="replies")
     replies: Mapped[List["Message"]] = relationship("Message", back_populates="parent", cascade="all, delete-orphan")
+    embeddings: Mapped[List["MessageEmbedding"]] = relationship("MessageEmbedding", back_populates="message", cascade="all, delete-orphan")
 
 
 class User(Base):
@@ -81,6 +83,8 @@ class User(Base):
     # Relationships
     topics: Mapped[List["Topic"]] = relationship("Topic", back_populates="user")
     messages: Mapped[List["Message"]] = relationship("Message", back_populates="user")
+    knowledge_record: Mapped[Optional["UserKnowledgeRecord"]] = relationship("UserKnowledgeRecord", back_populates="user", cascade="all, delete-orphan")
+    message_examples: Mapped[List["UserMessageExample"]] = relationship("UserMessageExample", back_populates="user", cascade="all, delete-orphan")
 
     # RAG models
 
@@ -103,12 +107,21 @@ class MessageEmbedding(Base):
     __tablename__ = "message_embeddings"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    message_id: Mapped[int] = mapped_column(index=True)
-    topic_id: Mapped[int] = mapped_column(index=True)
+    
+    # Внешние ключи с каскадным удалением
+    message_id: Mapped[Optional[int]] = mapped_column(ForeignKey("messages.id", ondelete="CASCADE"), nullable=True, index=True)
+    topic_id: Mapped[Optional[int]] = mapped_column(ForeignKey("topics.id", ondelete="CASCADE"), nullable=True, index=True)
+    user_message_example_id: Mapped[Optional[int]] = mapped_column(ForeignKey("user_message_examples.id", ondelete="CASCADE"), nullable=True, index=True)
+    
     content: Mapped[str] = mapped_column(Text)
     embedding: Mapped[Vector] = mapped_column(Vector(1536))
     extra_metadata: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    
+    # Связи
+    message: Mapped[Optional["Message"]] = relationship("Message", back_populates="embeddings")
+    topic: Mapped[Optional["Topic"]] = relationship("Topic", back_populates="embeddings")
+    user_message_example: Mapped[Optional["UserMessageExample"]] = relationship("UserMessageExample", back_populates="embeddings")
 
 
 class UserKnowledgeRecord(Base):
@@ -133,6 +146,9 @@ class UserKnowledgeRecord(Base):
     file_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+    
+    # Связи
+    user: Mapped["User"] = relationship("User", back_populates="knowledge_record")
 
 
 class UserMessageExample(Base):
@@ -162,3 +178,7 @@ class UserMessageExample(Base):
     extra_metadata: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
     source_file: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    
+    # Связи
+    user: Mapped["User"] = relationship("User", back_populates="message_examples")
+    embeddings: Mapped[List["MessageEmbedding"]] = relationship("MessageEmbedding", back_populates="user_message_example", cascade="all, delete-orphan")

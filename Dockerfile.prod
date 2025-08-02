@@ -1,0 +1,79 @@
+# Multi-stage Dockerfile для production
+FROM python:3.12-slim as base
+
+# Установка системных зависимостей
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Установка Poetry
+ENV POETRY_VERSION=1.8.3
+RUN pip install poetry==$POETRY_VERSION
+
+# Настройка Poetry
+ENV POETRY_NO_INTERACTION=1 \
+    POETRY_VENV_IN_PROJECT=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
+
+WORKDIR /app
+
+# Копирование файлов зависимостей
+COPY pyproject.toml poetry.lock ./
+
+# Development stage
+FROM base as development
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Установка всех зависимостей включая dev
+RUN poetry install && rm -rf $POETRY_CACHE_DIR
+
+COPY . .
+RUN chmod +x scripts/*.sh
+
+ENTRYPOINT ["./scripts/entrypoint.sh"]
+CMD ["python", "-c", "print('Development container ready')"]
+
+# Production stage
+FROM base as production
+
+# Установка только production зависимостей
+RUN poetry install --only=main --no-dev && rm -rf $POETRY_CACHE_DIR
+
+# Копирование только необходимых файлов
+COPY shared_models/ ./shared_models/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+COPY scripts/ ./scripts/
+
+# Делаем скрипты исполняемыми
+RUN chmod +x scripts/*.sh
+
+# Создание пользователя для безопасности
+RUN useradd --create-home --shell /bin/bash --uid 1000 app && \
+    chown -R app:app /app
+USER app
+
+# Переменные окружения
+ENV PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD poetry run python -c "import shared_models; print('OK')" || exit 1
+
+ENTRYPOINT ["./scripts/entrypoint.sh"]
+CMD ["python", "-c", "print('Production container ready')"]
+
+# Testing stage
+FROM development as testing
+
+# Копирование тестовых файлов
+COPY test_*.py ./
+
+# Установка тестовых зависимостей
+RUN poetry install --with test
+
+CMD ["poetry", "run", "python", "test_relationships.py"]

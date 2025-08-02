@@ -6,22 +6,20 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-
-# Добавляем путь к нашему проекту в sys.path
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
 # Импортируем наши модели
 from shared_models.models import Base  # Используем Base из models.py
 # Импортируем все модели для их регистрации
 from shared_models.models import (
-    User, 
-    Topic, 
-    Message, 
-    Embedding, 
-    MessageEmbedding, 
-    UserKnowledgeRecord, 
+    User,
+    Topic,
+    Message,
+    Embedding,
+    MessageEmbedding,
+    UserKnowledgeRecord,
     UserMessageExample
 )
+# Добавляем путь к нашему проекту в sys.path
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
