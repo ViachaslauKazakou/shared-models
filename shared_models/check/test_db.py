@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Скрипт для проверки подключения к базе данных и создания тестовых данных."""
+"""Скрипт для проверки подключения к базе данных и создания тестовых данных. shared models/check/test_db.py"""
 import sys
 import os
 import sqlalchemy as sa
