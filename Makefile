@@ -158,5 +158,35 @@ docker-stop-postgres: ## Остановить PostgreSQL контейнер
 	docker stop postgres-shared-models 2>/dev/null || true
 	docker rm postgres-shared-models 2>/dev/null || true
 
+# Команды для релизов
+release-patch: ## Создать патч релиз (0.1.1 -> 0.1.2)
+	@echo "$(GREEN)Creating patch release...$(NC)"
+	./scripts/create-release.sh patch
+
+release-minor: ## Создать минорный релиз (0.1.1 -> 0.2.0)
+	@echo "$(GREEN)Creating minor release...$(NC)"
+	./scripts/create-release.sh minor
+
+release-major: ## Создать мажорный релиз (0.1.1 -> 1.0.0)
+	@echo "$(GREEN)Creating major release...$(NC)"
+	./scripts/create-release.sh major
+
+release-check: ## Проверить текущую версию и последние релизы
+	@echo "$(GREEN)Current version:$(NC)"
+	@poetry run python -c "import toml; print('v' + toml.load('pyproject.toml')['project']['version'])" 2>/dev/null || echo "$(RED)Error reading version$(NC)"
+	@echo "\n$(GREEN)Recent tags:$(NC)"
+	@git tag --sort=-version:refname | head -5 || echo "$(RED)No tags found$(NC)"
+	@echo "\n$(GREEN)Latest release:$(NC)"
+	@git describe --tags --abbrev=0 2>/dev/null || echo "$(RED)No releases found$(NC)"
+
+version: ## Показать текущую версию
+	@poetry run python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])" 2>/dev/null || echo "Error reading version"
+
+build: ## Собрать пакет
+	@echo "$(GREEN)Building package...$(NC)"
+	poetry build
+	@echo "$(GREEN)Package built successfully!$(NC)"
+	@ls -la dist/
+
 # Алиас для help по умолчанию
 .DEFAULT_GOAL := help

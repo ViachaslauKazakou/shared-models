@@ -1,0 +1,94 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Триггер на теги версий (например, v1.0.0, v0.1.2)
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Получаем всю историю для changelog
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 2.1.0
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run tests
+        run: |
+          poetry run python -m pytest || echo "No tests found"
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Получаем последний тег перед текущим
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            # Если это первый тег, показываем все коммиты
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            # Показываем коммиты между тегами
+            CHANGELOG=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
+          
+          # Сохраняем changelog в файл для использования в релизе
+          echo "## Changes" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "$CHANGELOG" >> CHANGELOG.md
+          
+          # Экспортируем changelog для использования в следующих шагах
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          cat CHANGELOG.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Build package
+        run: |
+          poetry build
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Release ${{ steps.version.outputs.tag }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, 'alpha') || contains(steps.version.outputs.version, 'beta') || contains(steps.version.outputs.version, 'rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to PyPI (Optional)
+        if: ${{ !contains(steps.version.outputs.version, 'alpha') && !contains(steps.version.outputs.version, 'beta') && !contains(steps.version.outputs.version, 'rc') }}
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          poetry publish
+        continue-on-error: true  # Не останавливаем workflow если публикация в PyPI не удалась

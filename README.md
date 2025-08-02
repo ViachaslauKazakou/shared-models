@@ -1,5 +1,10 @@
 # Shared Models
 
+![Release](https://img.shields.io/github/v/release/ViachaslauKazakou/shared-models)
+![Build](https://img.shields.io/github/actions/workflow/status/ViachaslauKazakou/shared-models/test.yml?branch=main)
+![Python](https://img.shields.io/badge/python-3.12+-blue.svg)
+![License](https://img.shields.io/github/license/ViachaslauKazakou/shared-models)
+
 Общие SQLAlchemy модели и Pydantic схемы для микросервисной архитектуры.
 
 ## 🚀 Быстрый старт
@@ -7,11 +12,14 @@
 ### Установка как пакет
 
 ```bash
-# Из Git репозитория
-pip install git+https://github.com/ViachaslauKazakou/shared-models.git
+# Из последнего релиза
+pip install git+https://github.com/ViachaslauKazakou/shared-models.git@v0.1.2
 
 # Или через Poetry
-poetry add git+https://github.com/ViachaslauKazakou/shared-models.git
+poetry add git+https://github.com/ViachaslauKazakou/shared-models.git@v0.1.2
+
+# Из основной ветки (разработка)
+pip install git+https://github.com/ViachaslauKazakou/shared-models.git
 ```
 
 ### Использование
@@ -92,6 +100,24 @@ poetry build
 # Или использовать скрипт
 ./build.sh
 ```
+
+## 🏷️ Релизы
+
+Проект использует автоматическое создание релизов через GitHub Actions:
+
+### Автоматический релиз:
+1. Измените версию в `pyproject.toml`
+2. Commit и push в `main`
+3. GitHub Actions создаст тег и релиз автоматически
+
+### Ручной релиз:
+```bash
+# Создание тега
+git tag -a v0.1.3 -m "Release version 0.1.3"
+git push origin v0.1.3
+```
+
+Подробнее см. [.github/RELEASE.md](.github/RELEASE.md)
 
 ## 🤝 Вклад в проект
 
