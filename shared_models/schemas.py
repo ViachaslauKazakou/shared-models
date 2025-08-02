@@ -1,5 +1,5 @@
 from enum import Enum as PyEnum
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, EmailStr
 from datetime import datetime
 from typing import List, Optional
 
@@ -104,6 +104,19 @@ class UserBaseContext(BaseModel):
 
     class Config:
         from_attributes = True
+        
+        
+class UserBaseModel(BaseModel):
+
+    username: str
+    firstname: str
+    lastname: str
+    password: str
+    email: EmailStr
+    user_type: Optional[UserRole] = None  # = UserRole.admin  # Default role is admin
+    status: Optional[Status] = None  # = UserStatus.pending  # Default status is pending
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Обновляем forward reference
