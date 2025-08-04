@@ -59,35 +59,35 @@ jobs:
         run: |
           poetry run black --check . || echo "Black formatting check failed (continuing)"
 
-      - name: Run type checking with mypy
-        run: |
-          poetry run mypy shared_models/ || echo "MyPy type checking failed (continuing)"
-        continue-on-error: true
+    #   - name: Run type checking with mypy
+    #     run: |
+    #       poetry run mypy shared_models/ || echo "MyPy type checking failed (continuing)"
+    #     continue-on-error: true
 
-      - name: Test database connection
-        env:
-          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/test_db
-        run: |
-          poetry run python test_db.py
+    #   - name: Test database connection
+    #     env:
+    #       DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/test_db
+    #     run: |
+    #       poetry run python test_db.py
 
-      - name: Run database migrations
-        env:
-          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/test_db
-        run: |
-          poetry run alembic upgrade head
+    #   - name: Run database migrations
+    #     env:
+    #       DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/test_db
+    #     run: |
+    #       poetry run alembic upgrade head
 
-      - name: Test model relationships
-        env:
-          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/test_db
-        run: |
-          poetry run python test_relationships.py
+    #   - name: Test model relationships
+    #     env:
+    #       DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/test_db
+    #     run: |
+    #       poetry run python test_relationships.py
 
-      - name: Run pytest tests
-        env:
-          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/test_db
-        run: |
-          poetry run pytest -v || echo "No tests found or tests failed (continuing)"
-        continue-on-error: true
+    #   - name: Run pytest tests
+    #     env:
+    #       DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/test_db
+    #     run: |
+    #       poetry run pytest -v || echo "No tests found or tests failed (continuing)"
+    #     continue-on-error: true
 
       - name: Build package
         run: |

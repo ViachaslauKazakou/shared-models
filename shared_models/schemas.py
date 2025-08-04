@@ -118,6 +118,5 @@ class UserBaseModel(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-
 # Обновляем forward reference
 MessageResponse.model_rebuild()
