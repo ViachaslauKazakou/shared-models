@@ -240,3 +240,24 @@ class UserMessageExample(Base):
     # Связи
     user: Mapped["User"] = relationship("User", back_populates="message_examples")
     embeddings: Mapped[List["MessageEmbedding"]] = relationship("MessageEmbedding", back_populates="user_message_example", cascade="all, delete-orphan")
+
+
+class Task(Base):
+    """Таблица задач для фоновой обработки"""
+    __tablename__ = "tasks"
+    
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    task_id: Mapped[str] = mapped_column(String(100), unique=True, index=True)  # UUID задачи
+    user_id: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)  # ID пользователя (без FK)
+    topic_id: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)  # ID топика (без FK)
+    reply_to: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)  # ID сообщения (без FK)
+    context: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Контекст для генерации
+    question: Mapped[str] = mapped_column(Text)  # Вопрос/запрос для ИИ
+    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending, processing, completed, failed
+    result: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Результат выполнения
+    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Сообщение об ошибке
+    attempts: Mapped[int] = mapped_column(default=0)  # Количество попыток
+    max_attempts: Mapped[int] = mapped_column(default=3)  # Максимум попыток
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)  # Время начала обработки
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)  # Время завершения
