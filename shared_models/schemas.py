@@ -51,6 +51,74 @@ class MessageResponse(MessageBase):
         from_attributes = True
 
 
+class CategoryBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    slug: str
+    color: Optional[str] = None
+    icon: Optional[str] = None
+    is_active: bool = True
+    sort_order: int = 0
+
+
+class CategoryCreate(CategoryBase):
+    pass
+
+
+class CategoryUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    slug: Optional[str] = None
+    color: Optional[str] = None
+    icon: Optional[str] = None
+    is_active: Optional[bool] = None
+    sort_order: Optional[int] = None
+
+
+class CategoryResponse(CategoryBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class SubcategoryBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    slug: str
+    color: Optional[str] = None
+    icon: Optional[str] = None
+    is_active: bool = True
+    sort_order: int = 0
+    category_id: int
+
+
+class SubcategoryCreate(SubcategoryBase):
+    pass
+
+
+class SubcategoryUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    slug: Optional[str] = None
+    color: Optional[str] = None
+    icon: Optional[str] = None
+    is_active: Optional[bool] = None
+    sort_order: Optional[int] = None
+    category_id: Optional[int] = None
+
+
+class SubcategoryResponse(SubcategoryBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class TopicBase(BaseModel):
     title: str
     description: Optional[str] = None
@@ -58,15 +126,21 @@ class TopicBase(BaseModel):
 
 class TopicCreate(TopicBase):
     user_id: Optional[int] = None
+    category_id: Optional[int] = None
+    subcategory_id: Optional[int] = None
 
 
 class TopicUpdate(TopicBase):
     is_active: bool = True
+    category_id: Optional[int] = None
+    subcategory_id: Optional[int] = None
 
 
 class TopicResponse(TopicBase):
     id: int
     user_id: Optional[int]
+    category_id: Optional[int]
+    subcategory_id: Optional[int]
     created_at: datetime
     updated_at: datetime
     is_active: bool
@@ -79,9 +153,16 @@ class TopicWithMessages(TopicResponse):
     messages: List[MessageResponse] = []
 
 
+class TopicWithCategories(TopicResponse):
+    category: Optional[CategoryResponse] = None
+    subcategory: Optional[SubcategoryResponse] = None
+
+
 class TopicList(TopicBase):
     id: int
     user_id: Optional[int]
+    category_id: Optional[int]
+    subcategory_id: Optional[int]
     created_at: datetime
     message_count: int = 0
     is_active: bool
@@ -117,6 +198,7 @@ class UserBaseModel(BaseModel):
     status: Optional[Status] = None  # = UserStatus.pending  # Default status is pending
 
     model_config = ConfigDict(from_attributes=True)
+
 
 # Обновляем forward reference
 MessageResponse.model_rebuild()

@@ -13,6 +13,60 @@ class Base(DeclarativeBase):
     pass
 
 
+class Category(Base):
+    """Таблица категорий для топиков"""
+    
+    __tablename__ = "categories"
+    
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, index=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    slug: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, index=True)
+    color: Mapped[Optional[str]] = mapped_column(String(7), nullable=True)  # HEX цвет, например #FF5733
+    icon: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)  # Название иконки
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    sort_order: Mapped[int] = mapped_column(default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    
+    # Связи
+    subcategories: Mapped[List["Subcategory"]] = relationship("Subcategory", back_populates="category", cascade="all, delete-orphan")
+    topics: Mapped[List["Topic"]] = relationship("Topic", back_populates="category")
+
+
+class Subcategory(Base):
+    """Таблица подкатегорий для топиков"""
+    
+    __tablename__ = "subcategories"
+    
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    slug: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    color: Mapped[Optional[str]] = mapped_column(String(7), nullable=True)  # HEX цвет
+    icon: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)  # Название иконки
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    sort_order: Mapped[int] = mapped_column(default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    
+    # Внешний ключ на категорию
+    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), nullable=False, index=True)
+    
+    # Связи
+    category: Mapped["Category"] = relationship("Category", back_populates="subcategories")
+    topics: Mapped[List["Topic"]] = relationship("Topic", back_populates="subcategory")
+    
+    # Уникальность slug в рамках категории
+    __table_args__ = (
+        {"schema": None},
+    )
+
+
 class Topic(Base):
     __tablename__ = "topics"
 
@@ -25,11 +79,15 @@ class Topic(Base):
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
-    # Внешний ключ на пользователя
+    # Внешние ключи
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    category_id: Mapped[Optional[int]] = mapped_column(ForeignKey("categories.id"), nullable=True, index=True)
+    subcategory_id: Mapped[Optional[int]] = mapped_column(ForeignKey("subcategories.id"), nullable=True, index=True)
 
     # Связи
     user: Mapped["User"] = relationship("User", back_populates="topics")
+    category: Mapped[Optional["Category"]] = relationship("Category", back_populates="topics")
+    subcategory: Mapped[Optional["Subcategory"]] = relationship("Subcategory", back_populates="topics")
     messages: Mapped[List["Message"]] = relationship("Message", back_populates="topic", cascade="all, delete-orphan")
     embeddings: Mapped[List["MessageEmbedding"]] = relationship("MessageEmbedding", back_populates="topic", cascade="all, delete-orphan")
 
