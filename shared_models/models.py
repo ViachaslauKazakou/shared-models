@@ -1,10 +1,10 @@
 import uuid
-from sqlalchemy import String, Text, DateTime, ForeignKey, Boolean, Enum, JSON, UUID
+from sqlalchemy import ARRAY, String, Text, DateTime, ForeignKey, Boolean, Enum, JSON, UUID, Column, Integer
 from sqlalchemy.sql import func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from typing import Optional, List, Dict
 from datetime import datetime
-from shared_models.schemas import UserRole, Status
+from shared_models.schemas import CurrentMonth, DayOfWeek, LanguageEnum, LearnMode, UserRole, Status
 from pgvector.sqlalchemy import Vector
 
 
@@ -282,3 +282,95 @@ class Task(Base):
         DateTime(timezone=True), nullable=True
     )  # Время начала обработки
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)  # Время завершения
+
+
+#  Base service models
+
+class UserProfile(Base):
+    __tablename__ = "user_profile"
+    # __table_args__ = (
+    #     UniqueConstraint("title", "language", "level", name="unique_subject_constraint"),
+    # )
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    created_at: Mapped[str] = mapped_column(
+        DateTime(timezone=True), nullable=True, server_default=func.now()
+    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    description: Mapped[str] = mapped_column(nullable=True)
+    experience: Mapped[str] = mapped_column(nullable=True)
+    country: Mapped[str] = mapped_column(nullable=True)
+    city: Mapped[str] = mapped_column(nullable=True)
+    language = Column(
+        Enum(LanguageEnum, name="default_language", native_enum=False),
+        default=LanguageEnum.en,
+        nullable=True,
+    )
+
+    class UserSchedule(Base):
+        __tablename__ = "user_schedule"
+
+        id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+        subject_id: Mapped[int] = mapped_column(ForeignKey("subjects.id"))
+        month = Column(
+            Enum(CurrentMonth, name="month", native_enum=False),
+            default=CurrentMonth.january,
+            nullable=True,
+        )
+        working_days: Mapped[list[str]] = mapped_column(
+            ARRAY(Enum(DayOfWeek, name="days of week", native_enum=False)),
+            default=DayOfWeek.monday,
+            nullable=True,
+        )
+        working_hours: Mapped[list[int]] = mapped_column(ARRAY(Integer), nullable=True)
+
+
+class Subject(Base):
+    __tablename__ = "subjects"
+    # __table_args__ = (
+    #     UniqueConstraint("title", "language", "level", name="unique_subject_constraint"),
+    # )
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    created_at: Mapped[str] = mapped_column(
+        DateTime(timezone=True), nullable=True, server_default=func.now()
+    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    subject_name: Mapped[str] = mapped_column(nullable=False)
+    subject_level: Mapped[str] = mapped_column(nullable=False)
+    subject_description: Mapped[str] = mapped_column(nullable=True)
+    subject_language = Column(
+        Enum(LanguageEnum, name="language", native_enum=True),
+        default=LanguageEnum.en,
+        nullable=False,
+    )
+    price: Mapped[int] = mapped_column(nullable=False)
+    learn_mode = Column(
+        Enum(LearnMode, name="learn_mode", native_enum=False),
+        default=LearnMode.both,
+        nullable=True,
+    )
+    working_hours: Mapped[str] = mapped_column(nullable=True)
+    working_days: Mapped[str] = mapped_column(nullable=True)
+    subject_status = Column(
+        Enum(Status, name="subject_status", native_enum=False),
+        default=Status.pending,
+        nullable=True,
+    )
+
+    # Relationships
+    user = relationship("User", back_populates="subjects")
+
+    class SubjectSchedule(Base):
+        __tablename__ = "subject_schedule"
+
+        id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+        user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+
+        subject_id: Mapped[int] = mapped_column(ForeignKey("subjects.id"))
+        date_at: Mapped[str] = mapped_column(
+            DateTime(timezone=True), nullable=True, server_default=func.now()
+        )
+        booked_hours: Mapped[list[int]] = mapped_column(ARRAY(Integer), nullable=True)
+        status: Mapped[str]
+
+        # user = relationship("User", back_populates="id")
+        # subject: Mapped["Subject"] = relationship(back_populates="id")

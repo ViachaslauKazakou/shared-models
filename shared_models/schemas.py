@@ -8,7 +8,7 @@ class Status(str, PyEnum):
     pending = "pending"
     active = "active"
     disabled = "disabled"
-    blocked = "Забанен"
+    blocked = "blocked"
     deleted = "deleted"
 
 
@@ -20,6 +20,38 @@ class UserRole(str, PyEnum):
     mixed = "mixed"  # User with both admin and user capabilities
     mentor = "mentor"  # User with mentor capabilities
     mentee = "mentee"  # User with mentee capabilities
+    
+
+# Enum for learn type
+class LearnMode(str, PyEnum):
+    offline = "offline"
+    online = "online"
+    both = "both"
+
+
+class CurrentMonth(str, PyEnum):
+    january = "january"
+    february = "february"
+    march = "march"
+    april = "april"
+    may = "may"
+    june = "june"
+    july = "july"
+    august = "august"
+    september = "september"
+    october = "october"
+    november = "november"
+    december = "december"
+
+
+class DayOfWeek(str, PyEnum):
+    monday = "monday"
+    tuesday = "tuesday"
+    wednesday = "wednesday"
+    thursday = "thursday"
+    friday = "friday"
+    saturday = "saturday"
+    sunday = "sunday"
 
 
 class MessageBase(BaseModel):
@@ -198,6 +230,14 @@ class UserBaseModel(BaseModel):
     status: Optional[Status] = None  # = UserStatus.pending  # Default status is pending
 
     model_config = ConfigDict(from_attributes=True)
+    
+
+class LanguageEnum(str, PyEnum):
+    en = "en"
+    ru = "ru"
+    by = "by"
+    pl = "pl"
+    ua = "ua"
 
 
 # Обновляем forward reference
