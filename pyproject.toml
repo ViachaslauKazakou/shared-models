@@ -42,6 +42,7 @@ black = "^25.1.0"
 setuptools = "^80.9.0"
 wheel = "^0.45.1"
 build = "^1.2.2.post1"
+toml = "^0.10.2"
 
 [tool.black]
 line-length = 120
