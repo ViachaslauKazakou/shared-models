@@ -22,9 +22,7 @@ DB_POOL_RECYCLE = int(os.getenv("DB_POOL_RECYCLE", "3600"))
 if DATABASE_URL.startswith("sqlite"):
     # Для SQLite используем упрощенные настройки
     engine = create_engine(
-        DATABASE_URL, 
-        connect_args={"check_same_thread": False},
-        echo=os.getenv("LOG_LEVEL") == "DEBUG"
+        DATABASE_URL, connect_args={"check_same_thread": False}, echo=os.getenv("LOG_LEVEL") == "DEBUG"
     )
 else:
     # Для PostgreSQL и других баз используем пул соединений
@@ -34,7 +32,7 @@ else:
         max_overflow=DB_MAX_OVERFLOW,
         pool_timeout=DB_POOL_TIMEOUT,
         pool_recycle=DB_POOL_RECYCLE,
-        echo=os.getenv("LOG_LEVEL") == "DEBUG"
+        echo=os.getenv("LOG_LEVEL") == "DEBUG",
     )
 
 # Создаем фабрику сессий

@@ -6,8 +6,10 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+
 # Импортируем наши модели
 from shared_models.models import Base  # Используем Base из models.py
+
 # Импортируем все модели для их регистрации
 from shared_models.models import (
     User,
@@ -16,8 +18,9 @@ from shared_models.models import (
     Embedding,
     MessageEmbedding,
     UserKnowledgeRecord,
-    UserMessageExample
+    UserMessageExample,
 )
+
 # Добавляем путь к нашему проекту в sys.path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 

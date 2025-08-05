@@ -19,19 +19,16 @@ from .schemas import (
     CategoryCreate,
     CategoryUpdate,
     CategoryResponse,
-    
     # Subcategory schemas
     SubcategoryBase,
     SubcategoryCreate,
     SubcategoryUpdate,
     SubcategoryResponse,
-    
     # User schemas
     UserBaseModel,
     UserBaseContext,
     Status,
     UserRole,
-    
     # Topic schemas
     TopicBase,
     TopicCreate,
@@ -40,7 +37,6 @@ from .schemas import (
     TopicWithMessages,
     TopicWithCategories,
     TopicList,
-    
     # Message schemas
     MessageBase,
     MessageCreate,
@@ -56,31 +52,27 @@ __all__ = [
     "Topic",
     "Message",
     "Category",
-    "Subcategory", 
+    "Subcategory",
     "Task",
     "Embedding",
     "MessageEmbedding",
     "UserKnowledgeRecord",
     "UserMessageExample",
-    
     # Category schemas
     "CategoryBase",
     "CategoryCreate",
     "CategoryUpdate",
     "CategoryResponse",
-    
     # Subcategory schemas
     "SubcategoryBase",
     "SubcategoryCreate",
     "SubcategoryUpdate",
     "SubcategoryResponse",
-    
     # User schemas
     "UserBaseModel",
     "UserBaseContext",
     "UserRole",
     "Status",
-    
     # Topic schemas
     "TopicBase",
     "TopicCreate",
@@ -89,13 +81,11 @@ __all__ = [
     "TopicWithMessages",
     "TopicWithCategories",
     "TopicList",
-    
     # Message schemas
     "MessageBase",
     "MessageCreate",
     "MessageUpdate",
     "MessageResponse",
-    
     # Database
     "engine",
     "SessionLocal",

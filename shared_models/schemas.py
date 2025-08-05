@@ -185,8 +185,8 @@ class UserBaseContext(BaseModel):
 
     class Config:
         from_attributes = True
-        
-        
+
+
 class UserBaseModel(BaseModel):
 
     username: str

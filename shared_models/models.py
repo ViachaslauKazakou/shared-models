@@ -15,9 +15,9 @@ class Base(DeclarativeBase):
 
 class Category(Base):
     """Таблица категорий для топиков"""
-    
+
     __tablename__ = "categories"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, index=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
@@ -30,17 +30,19 @@ class Category(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
-    
+
     # Связи
-    subcategories: Mapped[List["Subcategory"]] = relationship("Subcategory", back_populates="category", cascade="all, delete-orphan")
+    subcategories: Mapped[List["Subcategory"]] = relationship(
+        "Subcategory", back_populates="category", cascade="all, delete-orphan"
+    )
     topics: Mapped[List["Topic"]] = relationship("Topic", back_populates="category")
 
 
 class Subcategory(Base):
     """Таблица подкатегорий для топиков"""
-    
+
     __tablename__ = "subcategories"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
@@ -53,18 +55,16 @@ class Subcategory(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
-    
+
     # Внешний ключ на категорию
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), nullable=False, index=True)
-    
+
     # Связи
     category: Mapped["Category"] = relationship("Category", back_populates="subcategories")
     topics: Mapped[List["Topic"]] = relationship("Topic", back_populates="subcategory")
-    
+
     # Уникальность slug в рамках категории
-    __table_args__ = (
-        {"schema": None},
-    )
+    __table_args__ = ({"schema": None},)
 
 
 class Topic(Base):
@@ -89,7 +89,9 @@ class Topic(Base):
     category: Mapped[Optional["Category"]] = relationship("Category", back_populates="topics")
     subcategory: Mapped[Optional["Subcategory"]] = relationship("Subcategory", back_populates="topics")
     messages: Mapped[List["Message"]] = relationship("Message", back_populates="topic", cascade="all, delete-orphan")
-    embeddings: Mapped[List["MessageEmbedding"]] = relationship("MessageEmbedding", back_populates="topic", cascade="all, delete-orphan")
+    embeddings: Mapped[List["MessageEmbedding"]] = relationship(
+        "MessageEmbedding", back_populates="topic", cascade="all, delete-orphan"
+    )
 
 
 class Message(Base):
@@ -113,7 +115,9 @@ class Message(Base):
     user: Mapped["User"] = relationship("User", back_populates="messages")
     parent: Mapped[Optional["Message"]] = relationship("Message", remote_side=[id], back_populates="replies")
     replies: Mapped[List["Message"]] = relationship("Message", back_populates="parent", cascade="all, delete-orphan")
-    embeddings: Mapped[List["MessageEmbedding"]] = relationship("MessageEmbedding", back_populates="message", cascade="all, delete-orphan")
+    embeddings: Mapped[List["MessageEmbedding"]] = relationship(
+        "MessageEmbedding", back_populates="message", cascade="all, delete-orphan"
+    )
 
 
 class User(Base):
@@ -141,8 +145,12 @@ class User(Base):
     # Relationships
     topics: Mapped[List["Topic"]] = relationship("Topic", back_populates="user")
     messages: Mapped[List["Message"]] = relationship("Message", back_populates="user")
-    knowledge_record: Mapped[Optional["UserKnowledgeRecord"]] = relationship("UserKnowledgeRecord", back_populates="user", cascade="all, delete-orphan")
-    message_examples: Mapped[List["UserMessageExample"]] = relationship("UserMessageExample", back_populates="user", cascade="all, delete-orphan")
+    knowledge_record: Mapped[Optional["UserKnowledgeRecord"]] = relationship(
+        "UserKnowledgeRecord", back_populates="user", cascade="all, delete-orphan"
+    )
+    message_examples: Mapped[List["UserMessageExample"]] = relationship(
+        "UserMessageExample", back_populates="user", cascade="all, delete-orphan"
+    )
 
     # RAG models
 
@@ -165,21 +173,29 @@ class MessageEmbedding(Base):
     __tablename__ = "message_embeddings"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    
+
     # Внешние ключи с каскадным удалением
-    message_id: Mapped[Optional[int]] = mapped_column(ForeignKey("messages.id", ondelete="CASCADE"), nullable=True, index=True)
-    topic_id: Mapped[Optional[int]] = mapped_column(ForeignKey("topics.id", ondelete="CASCADE"), nullable=True, index=True)
-    user_message_example_id: Mapped[Optional[int]] = mapped_column(ForeignKey("user_message_examples.id", ondelete="CASCADE"), nullable=True, index=True)
-    
+    message_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("messages.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    topic_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("topics.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    user_message_example_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("user_message_examples.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+
     content: Mapped[str] = mapped_column(Text)
     embedding: Mapped[Vector] = mapped_column(Vector(1536))
     extra_metadata: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    
+
     # Связи
     message: Mapped[Optional["Message"]] = relationship("Message", back_populates="embeddings")
     topic: Mapped[Optional["Topic"]] = relationship("Topic", back_populates="embeddings")
-    user_message_example: Mapped[Optional["UserMessageExample"]] = relationship("UserMessageExample", back_populates="embeddings")
+    user_message_example: Mapped[Optional["UserMessageExample"]] = relationship(
+        "UserMessageExample", back_populates="embeddings"
+    )
 
 
 class UserKnowledgeRecord(Base):
@@ -204,7 +220,7 @@ class UserKnowledgeRecord(Base):
     file_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
-    
+
     # Связи
     user: Mapped["User"] = relationship("User", back_populates="knowledge_record")
 
@@ -236,16 +252,19 @@ class UserMessageExample(Base):
     extra_metadata: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
     source_file: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    
+
     # Связи
     user: Mapped["User"] = relationship("User", back_populates="message_examples")
-    embeddings: Mapped[List["MessageEmbedding"]] = relationship("MessageEmbedding", back_populates="user_message_example", cascade="all, delete-orphan")
+    embeddings: Mapped[List["MessageEmbedding"]] = relationship(
+        "MessageEmbedding", back_populates="user_message_example", cascade="all, delete-orphan"
+    )
 
 
 class Task(Base):
     """Таблица задач для фоновой обработки"""
+
     __tablename__ = "tasks"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     task_id: Mapped[str] = mapped_column(String(100), unique=True, index=True)  # UUID задачи
     user_id: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)  # ID пользователя (без FK)
@@ -259,5 +278,7 @@ class Task(Base):
     attempts: Mapped[int] = mapped_column(default=0)  # Количество попыток
     max_attempts: Mapped[int] = mapped_column(default=3)  # Максимум попыток
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)  # Время начала обработки
+    started_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )  # Время начала обработки
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)  # Время завершения

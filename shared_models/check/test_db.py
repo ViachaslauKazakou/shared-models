@@ -43,13 +43,13 @@ def create_test_data():
                 password="hashed_password_here",
                 email="test@example.com",
                 user_type=UserRole.user,
-                status=Status.active
+                status=Status.active,
             )
             db.add(test_user)
             db.commit()
             db.refresh(test_user)
             print(f"✅ Создан тестовый пользователь: {test_user.username} (ID: {test_user.id})")
-        
+
         # Проверяем, существует ли уже тема
         existing_topic = db.query(Topic).filter(Topic.title == "Тестовая тема").first()
         if existing_topic:
@@ -61,30 +61,28 @@ def create_test_data():
                 title="Тестовая тема",
                 description="Это тестовая тема для проверки работы базы данных",
                 user_id=test_user.id,
-                is_active=True
+                is_active=True,
             )
             db.add(test_topic)
             db.commit()
             db.refresh(test_topic)
             print(f"✅ Создана тестовая тема: {test_topic.title} (ID: {test_topic.id})")
-        
+
         # Создаем тестовое сообщение (с уникальным содержимым по времени)
         from datetime import datetime
+
         message_content = f"Тестовое сообщение от {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         test_message = Message(
-            content=message_content,
-            author_name=test_user.username,
-            topic_id=test_topic.id,
-            user_id=test_user.id
+            content=message_content, author_name=test_user.username, topic_id=test_topic.id, user_id=test_user.id
         )
         db.add(test_message)
         db.commit()
         db.refresh(test_message)
-        
+
         print(f"✅ Создано тестовое сообщение (ID: {test_message.id})")
-        
+
         return True
-        
+
     except Exception as e:
         print(f"❌ Ошибка создания тестовых данных: {e}")
         db.rollback()
@@ -100,18 +98,18 @@ def check_data():
         users_count = db.query(User).count()
         topics_count = db.query(Topic).count()
         messages_count = db.query(Message).count()
-        
+
         print(f"📊 Статистика базы данных:")
         print(f"   Пользователи: {users_count}")
         print(f"   Темы: {topics_count}")
         print(f"   Сообщения: {messages_count}")
-        
+
         # Показываем последнего пользователя
         if users_count > 0:
             last_user = db.query(User).order_by(User.id.desc()).first()
             if last_user:
                 print(f"   Последний пользователь: {last_user.username} ({last_user.email})")
-            
+
     except Exception as e:
         print(f"❌ Ошибка проверки данных: {e}")
     finally:
@@ -122,14 +120,14 @@ def main():
     """Основная функция."""
     print("🚀 Проверка подключения к базе данных...")
     print("=" * 50)
-    
+
     if not check_connection():
         print("❌ Не удалось подключиться к базе данных!")
         return
-    
+
     print("\n📝 Создание тестовых данных...")
     print("=" * 50)
-    
+
     if create_test_data():
         print("\n📊 Проверка созданных данных...")
         print("=" * 50)
