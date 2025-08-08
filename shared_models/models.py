@@ -151,10 +151,10 @@ class User(Base):
     message_examples: Mapped[List["UserMessageExample"]] = relationship(
         "UserMessageExample", back_populates="user", cascade="all, delete-orphan"
     )
+    subjects: Mapped[List["Subject"]] = relationship("Subject", back_populates="user")
+
 
     # RAG models
-
-
 class Embedding(Base):
     """Таблица эмбеддингов"""
 
