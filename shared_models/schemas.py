@@ -10,6 +10,13 @@ class Status(str, PyEnum):
     disabled = "disabled"
     blocked = "blocked"
     deleted = "deleted"
+    
+    
+class MessageStatus(str, PyEnum):
+    pending = "pending"
+    active = "active"
+    blocked = "blocked"
+
 
 
 # Enum for user roles

@@ -4,7 +4,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from typing import Optional, List, Dict
 from datetime import datetime
-from shared_models.schemas import CurrentMonth, DayOfWeek, LanguageEnum, LearnMode, UserRole, Status
+from shared_models.schemas import CurrentMonth, DayOfWeek, LanguageEnum, LearnMode, UserRole, Status, MessageStatus
 from pgvector.sqlalchemy import Vector
 
 
@@ -104,6 +104,7 @@ class Message(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+    status: Mapped[MessageStatus] = mapped_column(Enum(MessageStatus, name="message_status", native_enum=False), default=MessageStatus.pending, nullable=True)
 
     # Внешние ключи
     topic_id: Mapped[int] = mapped_column(ForeignKey("topics.id"), nullable=False)
