@@ -271,6 +271,8 @@ class Task(Base):
     user_id: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)  # ID пользователя (без FK)
     topic_id: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)  # ID топика (без FK)
     reply_to: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)  # ID сообщения (без FK)
+    message_id: Mapped[Optional[int]] = mapped_column(nullable=True, index=True)
+    type: Mapped[str] = mapped_column(String(50), nullable=True)  # Тип задачи (например, "create", "moderate")
     context: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Контекст для генерации
     question: Mapped[str] = mapped_column(Text)  # Вопрос/запрос для ИИ
     status: Mapped[str] = mapped_column(String(20), default="pending")  # pending, processing, completed, failed

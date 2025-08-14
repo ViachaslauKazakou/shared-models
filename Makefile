@@ -35,14 +35,14 @@ check-migrations: ## Проверить статус миграций
 	@echo "\n$(GREEN)Migration history:$(NC)"
 	@poetry run alembic history --verbose || echo "$(RED)No migration history$(NC)"
 
-create-migration: ## Создать новую миграцию (использование: make create-migration MESSAGE="описание")
-	@if [ -z "$(MESSAGE)" ]; then \
-		echo "$(RED)Ошибка: Необходимо указать MESSAGE$(NC)"; \
-		echo "Использование: make create-migration MESSAGE=\"описание изменений\""; \
+create-migration: ## Создать новую миграцию (использование: make create-migration MMSG="описание")
+	@if [ -z "$(MSG)" ]; then \
+		echo "$(RED)Ошибка: Необходимо указать MSG$(NC)"; \
+		echo "Использование: make create-migration MSG=\"описание изменений\""; \
 		exit 1; \
 	fi
-	@echo "$(GREEN)Creating migration: $(MESSAGE)$(NC)"
-	poetry run alembic revision --autogenerate -m "$(MESSAGE)"
+	@echo "$(GREEN)Creating migration: $(MSG)$(NC)"
+	poetry run alembic revision --autogenerate -m "$(MSG)"
 
 reset-and-migrate: ## Полный сброс и настройка
 	@echo "$(YELLOW)Stopping containers...$(NC)"
