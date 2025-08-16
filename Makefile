@@ -35,7 +35,7 @@ check-migrations: ## Проверить статус миграций
 	@echo "\n$(GREEN)Migration history:$(NC)"
 	@poetry run alembic history --verbose || echo "$(RED)No migration history$(NC)"
 
-create-migration: ## Создать новую миграцию (использование: make create-migration MMSG="описание")
+create-migration: ## Создать новую миграцию (использование: make create-migration MSG="описание")
 	@if [ -z "$(MSG)" ]; then \
 		echo "$(RED)Ошибка: Необходимо указать MSG$(NC)"; \
 		echo "Использование: make create-migration MSG=\"описание изменений\""; \

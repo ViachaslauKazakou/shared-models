@@ -155,7 +155,33 @@ class User(Base):
     subjects: Mapped[List["Subject"]] = relationship("Subject", back_populates="user")
 
 
-    # RAG models
+class UserStatus(Base):
+    __tablename__ = "user_status"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    status: Mapped[Status] = mapped_column(Enum(Status, name="user_status", native_enum=False), default=Status.active)
+    penalty_points: Mapped[int] = mapped_column(Integer, default=0)
+    rating: Mapped[float] = mapped_column(Integer, default=0)
+    social_points: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Связь с пользователем
+    user: Mapped["User"] = relationship("User", back_populates="status")
+
+
+class UserFeedback(Base):
+    __tablename__ = "user_feedback"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    feedback: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True, server_default=func.now())
+    feedback_point: Mapped[int] = mapped_column(Integer, default=0)
+
+    user: Mapped["User"] = relationship("User", back_populates="feedback")
+
+
+# RAG models
 class Embedding(Base):
     """Таблица эмбеддингов"""
 
