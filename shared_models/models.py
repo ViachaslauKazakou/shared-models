@@ -1,11 +1,15 @@
 import uuid
-from sqlalchemy import ARRAY, String, Text, DateTime, ForeignKey, Boolean, Enum, JSON, UUID, Column, Integer
-from sqlalchemy.sql import func
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from typing import Optional, List, Dict
 from datetime import datetime
-from shared_models.schemas import CurrentMonth, DayOfWeek, LanguageEnum, LearnMode, UserRole, Status, MessageStatus
+from typing import Dict, List, Optional
+
 from pgvector.sqlalchemy import Vector
+from sqlalchemy import (ARRAY, JSON, UUID, Boolean, Column, DateTime, Enum,
+                        ForeignKey, Integer, String, Text)
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
+
+from shared_models.schemas import (CurrentMonth, DayOfWeek, LanguageEnum,
+                                   LearnMode, MessageStatus, Status, UserRole)
 
 
 # Базовый класс для моделей
@@ -153,6 +157,12 @@ class User(Base):
         "UserMessageExample", back_populates="user", cascade="all, delete-orphan"
     )
     subjects: Mapped[List["Subject"]] = relationship("Subject", back_populates="user")
+    user_status: Mapped[Optional["UserStatus"]] = relationship(
+        "UserStatus", back_populates="user", cascade="all, delete-orphan"
+    )
+    feedback: Mapped[List["UserFeedback"]] = relationship(
+        "UserFeedback", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class UserStatus(Base):
@@ -166,7 +176,7 @@ class UserStatus(Base):
     social_points: Mapped[int] = mapped_column(Integer, default=0)
 
     # Связь с пользователем
-    user: Mapped["User"] = relationship("User", back_populates="status")
+    user: Mapped["User"] = relationship("User", back_populates="user_status")
 
 
 class UserFeedback(Base):
