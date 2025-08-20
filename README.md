@@ -68,7 +68,73 @@ poetry run alembic upgrade head
 poetry run python test_db.py
 ```
 
-## 📚 Документация
+## � Устранение проблем
+
+### Проблема с миграциями "no such table: messages"
+
+Если вы видите ошибку типа `sqlalchemy.exc.OperationalError: no such table: messages`, это означает что миграции не синхронизированы с текущим состоянием базы данных.
+
+#### Решение для PostgreSQL (рекомендуется):
+
+1. **Создайте файл .env**:
+```bash
+# Database Configuration
+DATABASE_URL=postgresql+psycopg2://docker:docker@localhost:5433/postgres
+
+# Database Pool Settings
+DB_POOL_SIZE=5
+DB_MAX_OVERFLOW=10
+DB_POOL_TIMEOUT=30
+DB_POOL_RECYCLE=3600
+
+# Environment
+ENVIRONMENT=development
+LOG_LEVEL=INFO
+```
+
+2. **Запустите PostgreSQL**:
+```bash
+docker-compose up -d postgres
+```
+
+3. **Сбросьте миграции и создайте базовую**:
+```bash
+# Удалите старые миграции
+rm -f alembic/versions/*.py
+
+# Очистите базу данных
+docker exec forum_postgres psql -U docker -d postgres -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+
+# Восстановите pgvector
+docker exec forum_postgres psql -U docker -d postgres -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
+# Создайте новую базовую миграцию
+poetry run alembic revision --autogenerate -m "Initial migration: create all tables"
+
+# Примените миграцию
+poetry run alembic upgrade head
+```
+
+4. **При необходимости добавьте import pgvector в миграцию**:
+Если видите ошибку `NameError: name 'pgvector' is not defined`, добавьте в файл миграции:
+```python
+import pgvector.sqlalchemy
+```
+
+#### Быстрая команда через Makefile:
+```bash
+make up  # Запускает PostgreSQL и применяет миграции
+```
+
+### Переключение с SQLite на PostgreSQL
+
+Если вы использовали SQLite и хотите перейти на PostgreSQL:
+
+1. Создайте `.env` файл с настройками PostgreSQL (см. выше)
+2. Запустите PostgreSQL: `docker-compose up -d postgres`
+3. Следуйте инструкциям по сбросу миграций выше
+
+## �📚 Документация
 
 - [Подробная инструкция по использованию](USAGE.md)
 - [Работа с миграциями](MIGRATIONS.md)
@@ -85,9 +151,25 @@ poetry run alembic upgrade head
 
 ## ⚙️ Переменные окружения
 
+### PostgreSQL (рекомендуется)
 ```env
-DATABASE_URL=postgresql+psycopg2://user:pass@localhost:5432/db
+# Database Configuration
+DATABASE_URL=postgresql+psycopg2://docker:docker@localhost:5433/postgres
+
+# Database Pool Settings
 DB_POOL_SIZE=5
+DB_MAX_OVERFLOW=10
+DB_POOL_TIMEOUT=30
+DB_POOL_RECYCLE=3600
+
+# Environment
+ENVIRONMENT=development
+LOG_LEVEL=INFO
+```
+
+### SQLite (для разработки)
+```env
+DATABASE_URL=sqlite:///./shared_models.db
 LOG_LEVEL=INFO
 ```
 

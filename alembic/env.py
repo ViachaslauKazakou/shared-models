@@ -2,24 +2,17 @@ import os
 import sys
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-
+# Импортируем все модели для их регистрации
 # Импортируем наши модели
 from shared_models.models import Base  # Используем Base из models.py
-
-# Импортируем все модели для их регистрации
-from shared_models.models import (
-    User,
-    Topic,
-    Message,
-    Embedding,
-    MessageEmbedding,
-    UserKnowledgeRecord,
-    UserMessageExample,
-)
+from shared_models.models import (Category, Embedding, Message,
+                                  MessageEmbedding, Subcategory, Subject, Task,
+                                  Topic, User, UserFeedback,
+                                  UserKnowledgeRecord, UserMessageExample,
+                                  UserProfile, UserStatus)
 
 # Добавляем путь к нашему проекту в sys.path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
