@@ -1,7 +1,11 @@
 # Shared Models
 
 ![Release](https://img.shields.io/github/v/release/ViachaslauKazakou/shared-models)
-![Build](https://img.shields.io/github/actions/workflow/status/ViachaslauKazakou/shared-models/test.yml?branch=main)
+![Build](https://img.shields.io/github/actions/workflo## 📚 Документация
+
+- [Подробная инструкция по использованию](USAGE.md)
+- [Работа с миграциями](MIGRATIONS.md)
+- [Исправление ошибок отношений](RELATIONSHIP_FIX_GUIDE.md)atus/ViachaslauKazakou/shared-models/test.yml?branch=main)
 ![Python](https://img.shields.io/badge/python-3.12+-blue.svg)
 ![License](https://img.shields.io/github/license/ViachaslauKazakou/shared-models)
 
@@ -120,6 +124,25 @@ poetry run alembic upgrade head
 ```python
 import pgvector.sqlalchemy
 ```
+
+### Проблема с отношениями "UserStatus.user refers to attribute User.status"
+
+Если вы видите ошибку:
+```
+sqlalchemy.exc.InvalidRequestError: back_populates on relationship 'UserStatus.user' refers to attribute 'User.status' that is not a relationship
+```
+
+**Решение:** Обновите shared-models до версии v1.1.2 или выше:
+
+```bash
+# Обновите зависимость в вашем проекте
+pip install --upgrade git+https://github.com/ViachaslauKazakou/shared-models.git@v1.1.2
+
+# Или пересоберите Docker контейнер
+docker-compose build --no-cache your_app
+```
+
+Подробности см. в [RELATIONSHIP_FIX_GUIDE.md](RELATIONSHIP_FIX_GUIDE.md)
 
 #### Быстрая команда через Makefile:
 ```bash

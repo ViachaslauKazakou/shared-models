@@ -18,7 +18,7 @@ from sqlalchemy.orm import (
 )
 from pydantic import BaseModel, field_validator
 from typing import List, Dict, Optional
-from src.models import Base, User
+from shared_models.models import Base, User
 
 # from sqlalchemy import MetaData
 
