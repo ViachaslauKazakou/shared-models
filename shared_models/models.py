@@ -153,9 +153,6 @@ class User(Base):
     knowledge_record: Mapped[Optional["UserKnowledgeRecord"]] = relationship(
         "UserKnowledgeRecord", back_populates="user", cascade="all, delete-orphan"
     )
-    message_examples: Mapped[List["UserMessageExample"]] = relationship(
-        "UserMessageExample", back_populates="user", cascade="all, delete-orphan"
-    )
     subjects: Mapped[List["Subject"]] = relationship("Subject", back_populates="user")
     user_status: Mapped[Optional["UserStatus"]] = relationship(
         "UserStatus", back_populates="user", cascade="all, delete-orphan"
