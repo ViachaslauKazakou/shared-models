@@ -270,10 +270,7 @@ class UserMessageExample(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
     # Связь с реальным пользователем
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
-
-    # Дополнительное поле для хранения строкового идентификатора (например, alaev)
-    character_id: Mapped[Optional[str]] = mapped_column(String(50), index=True, nullable=True)
+    profile_id: Mapped[int] = mapped_column(ForeignKey("user_knowledge.id"), index=True)
 
     # Основные поля сообщения
     context: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
@@ -291,7 +288,7 @@ class UserMessageExample(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     # Связи
-    user: Mapped["User"] = relationship("User", back_populates="message_examples")
+    profile: Mapped["UserKnowledgeRecord"] = relationship("UserKnowledgeRecord", back_populates="message_examples")
     embeddings: Mapped[List["MessageEmbedding"]] = relationship(
         "MessageEmbedding", back_populates="user_message_example", cascade="all, delete-orphan"
     )
