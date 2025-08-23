@@ -257,7 +257,9 @@ class UserKnowledgeRecord(Base):
 
     # Связи
     user: Mapped["User"] = relationship("User", back_populates="knowledge_record")
-
+    message_examples: Mapped[List["UserMessageExample"]] = relationship(
+        "UserMessageExample", back_populates="profile", cascade="all, delete-orphan"
+    )
 
 class UserMessageExample(Base):
     """Таблица примеров сообщений пользователей"""
