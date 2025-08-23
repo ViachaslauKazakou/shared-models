@@ -269,8 +269,10 @@ class UserMessageExample(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
-    # Связь с реальным пользователем
-    profile_id: Mapped[int] = mapped_column(ForeignKey("user_knowledge.id"), index=True)
+    # Связь с профилем
+    profile_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("user_knowledge.id"), index=True
+    )
 
     # Основные поля сообщения
     context: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
