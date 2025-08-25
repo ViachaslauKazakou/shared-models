@@ -9,7 +9,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from shared_models.schemas import (CurrentMonth, DayOfWeek, LanguageEnum,
-                                   LearnMode, MessageStatus, Status, UserRole)
+                                   LearnMode, MessageStatus, Status, UserRole, TaskType)
 
 
 # Базовый класс для моделей
@@ -82,6 +82,7 @@ class Topic(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    task_type: Mapped[TaskType] = mapped_column(Enum(TaskType, name="task_type", native_enum=False), default=TaskType.general, nullable=True)
 
     # Внешние ключи
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
@@ -109,6 +110,7 @@ class Message(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     status: Mapped[MessageStatus] = mapped_column(Enum(MessageStatus, name="message_status", native_enum=False), default=MessageStatus.pending, nullable=True)
+    task_type: Mapped[TaskType] = mapped_column(Enum(TaskType, name="task_type", native_enum=False), default=TaskType.general, nullable=True)
 
     # Внешние ключи
     topic_id: Mapped[int] = mapped_column(ForeignKey("topics.id"), nullable=False)
@@ -261,6 +263,7 @@ class UserKnowledgeRecord(Base):
         "UserMessageExample", back_populates="profile", cascade="all, delete-orphan"
     )
 
+
 class UserMessageExample(Base):
     """Таблица примеров сообщений пользователей"""
 
@@ -306,7 +309,7 @@ class Task(Base):
     topic_id: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)  # ID топика (без FK)
     reply_to: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)  # ID сообщения (без FK)
     message_id: Mapped[Optional[int]] = mapped_column(nullable=True, index=True)
-    type: Mapped[str] = mapped_column(String(50), nullable=True)  # Тип задачи (например, "create", "moderate")
+    task_type: Mapped[TaskType] = mapped_column(Enum(TaskType, name="task_type", native_enum=False), default=TaskType.general, nullable=True)
     context: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Контекст для генерации
     question: Mapped[str] = mapped_column(Text)  # Вопрос/запрос для ИИ
     status: Mapped[str] = mapped_column(String(20), default="pending")  # pending, processing, completed, failed

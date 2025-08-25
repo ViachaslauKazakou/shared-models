@@ -18,6 +18,14 @@ class MessageStatus(str, PyEnum):
     blocked = "blocked"
 
 
+class TaskType(str, PyEnum):
+    general = "general"
+    question = "question"
+    tutorial = "tutorial"
+    code = "code"
+    moderate = "moderate"
+    create = "create"
+
 
 # Enum for user roles
 class UserRole(str, PyEnum):
