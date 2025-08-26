@@ -25,6 +25,7 @@ class TaskType(str, PyEnum):
     code = "code"
     moderate = "moderate"
     create = "create"
+    help = "help"
 
 
 # Enum for user roles
@@ -169,6 +170,7 @@ class SubcategoryResponse(SubcategoryBase):
 class TopicBase(BaseModel):
     title: str
     description: Optional[str] = None
+    task_type: Optional[TaskType] = TaskType.general
 
 
 class TopicCreate(TopicBase):
