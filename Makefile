@@ -188,5 +188,33 @@ build: ## Собрать пакет
 	@echo "$(GREEN)Package built successfully!$(NC)"
 	@ls -la dist/
 
+# Команды для работы с удаленной БД
+deploy-remote: ## Подключиться к удаленной БД и применить миграции
+	@echo "$(GREEN)Connecting to remote database...$(NC)"
+	./scripts/deploy-remote-db.sh
+
+remote-current: ## Показать текущую миграцию в удаленной БД
+	@echo "$(GREEN)Current migration in remote database:$(NC)"
+	poetry run alembic -c alembic.remote.ini current
+
+remote-upgrade: ## Применить все миграции к удаленной БД
+	@echo "$(YELLOW)⚠️  ВНИМАНИЕ: Применение миграций к УДАЛЕННОЙ БД!$(NC)"
+	@echo "$(YELLOW)Продолжить? (y/N):$(NC)"
+	@read confirm && [ "$$confirm" = "y" ] || (echo "$(RED)Отменено$(NC)" && exit 1)
+	@echo "$(GREEN)Applying migrations to remote database...$(NC)"
+	poetry run alembic -c alembic.remote.ini upgrade head
+
+remote-history: ## Показать историю миграций удаленной БД
+	@echo "$(GREEN)Migration history for remote database:$(NC)"
+	poetry run alembic -c alembic.remote.ini history --verbose
+
+remote-downgrade: ## Откатить миграцию в удаленной БД (ОПАСНО!)
+	@echo "$(RED)⚠️  ОПАСНО: Откат миграции в УДАЛЕННОЙ БД!$(NC)"
+	@echo "$(YELLOW)Введите ревизию для отката или 'cancel' для отмены:$(NC)"
+	@read revision && [ "$$revision" != "cancel" ] || (echo "$(GREEN)Отменено$(NC)" && exit 0)
+	@echo "$(RED)Вы уверены? Это может привести к потере данных! (yes/no):$(NC)"
+	@read confirm && [ "$$confirm" = "yes" ] || (echo "$(GREEN)Отменено$(NC)" && exit 1)
+	poetry run alembic -c alembic.remote.ini downgrade $$revision
+
 # Алиас для help по умолчанию
 .DEFAULT_GOAL := help

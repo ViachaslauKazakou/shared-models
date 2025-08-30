@@ -48,10 +48,13 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    # Получаем URL базы данных из нашего модуля
-    from shared_models.database import DATABASE_URL
-
-    url = DATABASE_URL
+    # Получаем URL из конфигурации Alembic, а не из database.py
+    url = config.get_main_option("sqlalchemy.url")
+    
+    # Если URL не найден в конфигурации, используем из database.py как fallback
+    if not url:
+        from shared_models.database import DATABASE_URL
+        url = DATABASE_URL
 
     context.configure(
         url=url,
@@ -71,19 +74,31 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    # Получаем URL базы данных из переменной окружения или конфигурации
-    from shared_models.database import DATABASE_URL
+    # Получаем URL из конфигурации Alembic, а не из database.py
+    url = config.get_main_option("sqlalchemy.url")
+    
+    # Если URL не найден в конфигурации, используем из database.py как fallback
+    if not url:
+        from shared_models.database import DATABASE_URL
+        url = DATABASE_URL
 
-    config.set_main_option("sqlalchemy.url", DATABASE_URL)
+    # Получаем секцию конфигурации
+    configuration = config.get_section(config.config_ini_section)
+    if configuration is None:
+        configuration = {}
 
+    # Создаем движок с URL из конфигурации
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        url=url,  # Явно передаем URL
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection, target_metadata=target_metadata
+        )
 
         with context.begin_transaction():
             context.run_migrations()

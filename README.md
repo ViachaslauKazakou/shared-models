@@ -231,3 +231,6 @@ git push origin v0.1.3
 3. Сделайте изменения
 4. Добавьте тесты
 5. Создайте Pull Request
+
+
+MySecurePassword123

@@ -1,5 +1,7 @@
 # Environment variables
 .env
+.env.remote
+.env.local
 
 # Database files
 *.db
