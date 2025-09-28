@@ -16,7 +16,7 @@ up: ## Запуск с автоматическими миграциями
 	@echo "$(YELLOW)Waiting for PostgreSQL to be ready...$(NC)"
 	@until docker exec forum_postgres pg_isready -U docker -d postgres >/dev/null 2>&1; do sleep 1; done
 	@echo "$(GREEN)Applying migrations...$(NC)"
-	poetry run alembic upgrade head
+	poetry run alembic -c alembic.ini upgrade head
 	@echo "$(GREEN)All services are ready!$(NC)"
 
 down: ## Остановка всех контейнеров
@@ -25,15 +25,15 @@ down: ## Остановка всех контейнеров
 
 migrate: ## Только применить миграции
 	@echo "$(GREEN)Applying migrations...$(NC)"
-	poetry run alembic upgrade head
+	poetry run alembic -c alembic.ini upgrade head
 
 check-migrations: ## Проверить статус миграций
 	@echo "$(GREEN)Current migration:$(NC)"
-	@poetry run alembic current || echo "$(RED)No migrations applied$(NC)"
+	@poetry run alembic -c alembic.ini current || echo "$(RED)No migrations applied$(NC)"
 	@echo "\n$(GREEN)Available migrations:$(NC)"
-	@poetry run alembic heads || echo "$(RED)No migrations found$(NC)"
+	@poetry run alembic -c alembic.ini heads || echo "$(RED)No migrations found$(NC)"
 	@echo "\n$(GREEN)Migration history:$(NC)"
-	@poetry run alembic history --verbose || echo "$(RED)No migration history$(NC)"
+	@poetry run alembic -c alembic.ini history --verbose || echo "$(RED)No migration history$(NC)"
 
 create-migration: ## Создать новую миграцию (использование: make create-migration MSG="описание")
 	@if [ -z "$(MSG)" ]; then \
