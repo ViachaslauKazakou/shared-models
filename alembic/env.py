@@ -13,6 +13,7 @@ from shared_models.models import (Category, Embedding, Message,
                                   Topic, User, UserFeedback,
                                   UserKnowledgeRecord, UserMessageExample,
                                   UserProfile, UserStatus)
+from shared_models.quiz_model import *
 
 # Добавляем путь к нашему проекту в sys.path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))

@@ -20,7 +20,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
-from app.models import Base
+from shared_models.models import Base
 
 
 class QuestionType(str, enum.Enum):
