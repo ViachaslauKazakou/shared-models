@@ -29,7 +29,6 @@ def upgrade() -> None:
                existing_type=sa.VARCHAR(length=20),
                type_=sa.Enum('general', 'question', 'tutorial', 'code', 'moderate', 'create', 'help', name='task_type', native_enum=False),
                existing_nullable=True)
-    op.drop_column('tasks', 'type')
     op.alter_column('topics', 'task_type',
                existing_type=sa.VARCHAR(length=20),
                type_=sa.Enum('general', 'question', 'tutorial', 'code', 'moderate', 'create', 'help', name='task_type', native_enum=False),
@@ -44,7 +43,6 @@ def downgrade() -> None:
                existing_type=sa.Enum('general', 'question', 'tutorial', 'code', 'moderate', 'create', 'help', name='task_type', native_enum=False),
                type_=sa.VARCHAR(length=20),
                existing_nullable=True)
-    op.add_column('tasks', sa.Column('type', sa.VARCHAR(length=50), autoincrement=False, nullable=True))
     op.alter_column('tasks', 'task_type',
                existing_type=sa.Enum('general', 'question', 'tutorial', 'code', 'moderate', 'create', 'help', name='task_type', native_enum=False),
                type_=sa.VARCHAR(length=20),
