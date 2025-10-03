@@ -162,6 +162,12 @@ class User(Base):
     feedback: Mapped[List["UserFeedback"]] = relationship(
         "UserFeedback", back_populates="user", cascade="all, delete-orphan"
     )
+    documents = relationship(
+        "Document",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        doc="User's documents"
+    )
 
 
 class UserStatus(Base):
