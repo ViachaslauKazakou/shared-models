@@ -13,6 +13,8 @@ from .models import (
     UserKnowledgeRecord,
     UserMessageExample,
 )
+from .quiz_model import *
+from .documents_models import *
 from .schemas import (
     # Category schemas
     CategoryBase,
