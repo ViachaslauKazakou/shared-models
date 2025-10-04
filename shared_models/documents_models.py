@@ -6,7 +6,7 @@ SQLAlchemy models for document management system with hierarchical relationships
 import uuid
 from datetime import datetime
 from typing import List, Optional
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table, Text, Boolean
+from sqlalchemy import JSON, Column, Integer, String, DateTime, ForeignKey, Table, Text, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from shared_models.models import Base
@@ -83,7 +83,19 @@ class Document(Base):
         nullable=True,
         doc="Path to the document file"
     )
+
+    image_path: Mapped[Optional[str]] = mapped_column(
+        String(500),
+        nullable=True,
+        doc="Path to the document png image"
+    )
     
+    meta_data: Mapped[Optional[dict]] = mapped_column(
+        JSON,
+        nullable=True,
+        doc="Additional metadata in JSON format"
+    )
+
     file_name: Mapped[Optional[str]] = mapped_column(
         String(255),
         nullable=True,
