@@ -1,19 +1,42 @@
-# Dockerfile на основе pgvector/pgvector:pg15
-FROM pgvector/pgvector:pg15
+# Используем официальный Python 3.12 образ как базовый
+FROM python:3.12-bookworm
+
+# Установка PostgreSQL 15 с pgvector
+RUN apt-get update && apt-get install -y \
+    wget \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y \
+    postgresql-15 \
+    postgresql-client-15 \
+    postgresql-contrib-15 \
+    postgresql-15-pgvector \
+    && rm -rf /var/lib/apt/lists/*
+
+# Создание пользователя postgres если не существует
+RUN groupadd -r postgres --gid=999 || true \
+    && useradd -r -g postgres --uid=999 --home-dir=/var/lib/postgresql --shell=/bin/bash postgres || true
+
+# Создание директорий для PostgreSQL
+RUN mkdir -p /var/lib/postgresql/data \
+    && chown -R postgres:postgres /var/lib/postgresql \
+    && chmod 777 /var/lib/postgresql/data
+
+# Настройка переменных окружения для PostgreSQL
+ENV PGVERSION=15
+ENV PATH=$PATH:/usr/lib/postgresql/$PGVERSION/bin
+ENV PGDATA=/var/lib/postgresql/data
 
 # Метаданные образа
 LABEL maintainer="ViachaslauKazakou"
 LABEL description="PostgreSQL с pgvector и shared-models миграциями"
 LABEL version="0.1.1"
 
-# Установка базовых пакетов
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    python3-venv \
-    python3-full \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+
 
 # Установка Poetry с --break-system-packages для Docker окружения
 ENV POETRY_VERSION=2.1.0
@@ -64,5 +87,15 @@ ENV PYTHONPATH=/app
 # Открытие стандартного порта PostgreSQL
 EXPOSE 5432
 
+# Создание директории для init скриптов
+RUN mkdir -p /docker-entrypoint-initdb.d
+
+# Копирование entry point скрипта
+COPY --from=pgvector/pgvector:pg15 /usr/local/bin/docker-entrypoint.sh /usr/local/bin/
+
+# Делаем entry point исполняемым
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Использование стандартного entrypoint от PostgreSQL
-# который автоматически выполнит скрипты из /docker-entrypoint-initdb.d/
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["postgres"]

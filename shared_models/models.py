@@ -9,7 +9,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from shared_models.schemas import (CurrentMonth, DayOfWeek, LanguageEnum,
-                                   LearnMode, MessageStatus, Status, UserRole, TaskType)
+                                   LearnMode, MessageStatus, PrivateMessageStatus, Status, UserRole, TaskType)
 
 
 # Базовый класс для моделей
@@ -100,6 +100,7 @@ class Topic(Base):
 
 
 class Message(Base):
+    """Таблица сообщений форума"""
     __tablename__ = "messages"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -352,22 +353,23 @@ class UserProfile(Base):
         nullable=True,
     )
 
-    class UserSchedule(Base):
-        __tablename__ = "user_schedule"
 
-        id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-        subject_id: Mapped[int] = mapped_column(ForeignKey("subjects.id"))
-        month = Column(
-            Enum(CurrentMonth, name="month", native_enum=False),
-            default=CurrentMonth.january,
-            nullable=True,
-        )
-        working_days: Mapped[list[str]] = mapped_column(
-            ARRAY(Enum(DayOfWeek, name="days of week", native_enum=False)),
-            default=DayOfWeek.monday,
-            nullable=True,
-        )
-        working_hours: Mapped[list[int]] = mapped_column(ARRAY(Integer), nullable=True)
+class UserSchedule(Base):
+    __tablename__ = "user_schedule"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    subject_id: Mapped[int] = mapped_column(ForeignKey("subjects.id"))
+    month = Column(
+        Enum(CurrentMonth, name="month", native_enum=False),
+        default=CurrentMonth.january,
+        nullable=True,
+    )
+    working_days: Mapped[list[str]] = mapped_column(
+        ARRAY(Enum(DayOfWeek, name="days of week", native_enum=False)),
+        default=DayOfWeek.monday,
+        nullable=True,
+    )
+    working_hours: Mapped[list[int]] = mapped_column(ARRAY(Integer), nullable=True)
 
 
 class Subject(Base):
@@ -405,18 +407,32 @@ class Subject(Base):
     # Relationships
     user = relationship("User", back_populates="subjects")
 
-    class SubjectSchedule(Base):
-        __tablename__ = "subject_schedule"
 
-        id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-        user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+class SubjectSchedule(Base):
+    __tablename__ = "subject_schedule"
 
-        subject_id: Mapped[int] = mapped_column(ForeignKey("subjects.id"))
-        date_at: Mapped[str] = mapped_column(
-            DateTime(timezone=True), nullable=True, server_default=func.now()
-        )
-        booked_hours: Mapped[list[int]] = mapped_column(ARRAY(Integer), nullable=True)
-        status: Mapped[str]
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
-        # user = relationship("User", back_populates="id")
-        # subject: Mapped["Subject"] = relationship(back_populates="id")
+    subject_id: Mapped[int] = mapped_column(ForeignKey("subjects.id"))
+    booked_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=True, server_default=func.now()
+    )
+    booked_hours: Mapped[list[int]] = mapped_column(ARRAY(Integer), nullable=True)
+    status: Mapped[str]
+
+    # user = relationship("User", back_populates="id")
+    # subject: Mapped["Subject"] = relationship(back_populates="id")
+
+
+class UserMessage(Base):
+    __tablename__ = "user_message"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    sender_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    receiver_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    message_status: Mapped[PrivateMessageStatus] = mapped_column(Enum(PrivateMessageStatus, name="message_status", native_enum=False), default=PrivateMessageStatus.unread)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=True, server_default=func.now()
+    )

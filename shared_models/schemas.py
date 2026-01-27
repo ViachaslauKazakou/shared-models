@@ -18,6 +18,13 @@ class MessageStatus(str, PyEnum):
     blocked = "blocked"
 
 
+class PrivateMessageStatus(str, PyEnum):
+    unread = "unread"
+    read = "read"
+    deleted = "deleted"
+
+
+
 class TaskType(str, PyEnum):
     general = "general"
     question = "question"

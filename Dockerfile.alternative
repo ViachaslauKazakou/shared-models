@@ -1,0 +1,88 @@
+# Alternative Dockerfile using multi-stage build with Python 3.12
+FROM python:3.12-slim-bookworm as python-base
+
+# Первый этап: установка Python зависимостей
+FROM python-base as dependencies
+
+# Установка Poetry
+ENV POETRY_VERSION=2.1.0
+RUN pip install poetry==$POETRY_VERSION
+
+# Установка Poetry плагинов
+RUN poetry self add poetry-plugin-export
+
+# Настройка Poetry
+ENV POETRY_NO_INTERACTION=1 \
+    POETRY_VENV_IN_PROJECT=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
+
+WORKDIR /app
+
+# Копирование файлов проекта для установки зависимостей
+COPY pyproject.toml poetry.lock ./
+RUN poetry install --only=main && rm -rf $POETRY_CACHE_DIR
+
+# Второй этап: настройка PostgreSQL с pgvector
+FROM pgvector/pgvector:pg15
+
+# Копирование Python 3.12 из первого этапа
+COPY --from=python-base /usr/local /usr/local
+
+# Установка минимальных пакетов
+RUN apt-get update && apt-get install -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Создание симлинков для Python
+RUN ln -sf /usr/local/bin/python3.12 /usr/bin/python3 \
+    && ln -sf /usr/local/bin/pip3.12 /usr/bin/pip3
+
+# Установка Poetry
+ENV POETRY_VERSION=2.1.0
+RUN pip3 install poetry==$POETRY_VERSION
+
+# Установка Poetry плагинов
+RUN poetry self add poetry-plugin-export
+
+# Настройка Poetry
+ENV POETRY_NO_INTERACTION=1 \
+    POETRY_VENV_IN_PROJECT=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
+
+# Создание рабочей директории для приложения
+WORKDIR /app
+
+# Копирование файлов проекта
+COPY pyproject.toml poetry.lock ./
+COPY shared_models/ ./shared_models/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+COPY scripts/ ./scripts/
+
+# Установка Python зависимостей
+RUN poetry install --only=main && rm -rf $POETRY_CACHE_DIR
+
+# Делаем скрипты исполняемыми
+RUN chmod +x scripts/*.sh
+
+# Копирование кастомного init скрипта
+COPY docker/init-pgvector.sql /docker-entrypoint-initdb.d/01-init-pgvector.sql
+COPY docker/init-migrations.sh /docker-entrypoint-initdb.d/02-init-migrations.sh
+
+# Делаем migration скрипт исполняемым
+RUN chmod +x /docker-entrypoint-initdb.d/02-init-migrations.sh
+
+# Переменные окружения для PostgreSQL
+ENV POSTGRES_DB=postgres
+ENV POSTGRES_USER=docker
+ENV POSTGRES_PASSWORD=docker
+ENV POSTGRES_HOST_AUTH_METHOD=trust
+
+# Переменные окружения для миграций
+ENV DATABASE_URL=postgresql+psycopg2://docker:docker@localhost:5432/postgres
+ENV PYTHONPATH=/app
+
+# Открытие стандартного порта PostgreSQL
+EXPOSE 5432
+
+# Использование стандартного entrypoint от PostgreSQL
+# который автоматически выполнит скрипты из /docker-entrypoint-initdb.d/
