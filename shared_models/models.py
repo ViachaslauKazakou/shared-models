@@ -9,7 +9,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from shared_models.schemas import (CurrentMonth, DayOfWeek, LanguageEnum,
-                                   LearnMode, MessageStatus, PrivateMessageStatus, Status, UserRole, TaskType)
+                                   LearnMode, MessageStatus, PrivateMessageStatus, Status, SubjectBookStatus, UserRole, TaskType)
 
 
 # Базовый класс для моделей
@@ -418,8 +418,11 @@ class SubjectSchedule(Base):
     booked_date: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=True, server_default=func.now()
     )
-    booked_hours: Mapped[list[int]] = mapped_column(ARRAY(Integer), nullable=True)
-    status: Mapped[str]
+    booked_hours: Mapped[str] = mapped_column(nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+    DateTime(timezone=True), nullable=True, server_default=func.now()
+    )
+    status: Mapped[SubjectBookStatus] = mapped_column(Enum(SubjectBookStatus, name="status", native_enum=False), default=SubjectBookStatus.pending)
 
     # user = relationship("User", back_populates="id")
     # subject: Mapped["Subject"] = relationship(back_populates="id")
@@ -431,6 +434,7 @@ class UserMessage(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     sender_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     receiver_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    subject_id: Mapped[Optional[int]] = mapped_column(ForeignKey("subjects.id"), nullable=True)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     message_status: Mapped[PrivateMessageStatus] = mapped_column(Enum(PrivateMessageStatus, name="message_status", native_enum=False), default=PrivateMessageStatus.unread)
     created_at: Mapped[datetime] = mapped_column(

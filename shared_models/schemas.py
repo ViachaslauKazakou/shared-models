@@ -24,6 +24,11 @@ class PrivateMessageStatus(str, PyEnum):
     deleted = "deleted"
 
 
+class SubjectBookStatus(str, PyEnum):
+    pending = "pending"
+    confirmed = "confirmed"
+    cancelled = "cancelled"
+
 
 class TaskType(str, PyEnum):
     general = "general"
