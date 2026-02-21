@@ -28,6 +28,8 @@ class SubjectBookStatus(str, PyEnum):
     pending = "pending"
     confirmed = "confirmed"
     cancelled = "cancelled"
+    released = "released"
+    finished = "finished"
 
 
 class TaskType(str, PyEnum):
