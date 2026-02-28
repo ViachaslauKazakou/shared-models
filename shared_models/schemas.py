@@ -1,4 +1,5 @@
 from enum import Enum as PyEnum
+import enum
 from pydantic import BaseModel, ConfigDict, EmailStr
 from datetime import datetime
 from typing import List, Optional
@@ -269,6 +270,12 @@ class LanguageEnum(str, PyEnum):
     by = "by"
     pl = "pl"
     ua = "ua"
+
+
+class QuestionType(str, PyEnum):
+    """Question type: single choice or multiple choice"""
+    single_choice = "single_choice"
+    multiple_choice = "multiple_choice"
 
 
 # Обновляем forward reference

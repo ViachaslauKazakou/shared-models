@@ -57,6 +57,16 @@ class CourseStatus(str, enum.Enum):
     ARCHIVED = "archived"
 
 
+class QuizAccessType(str, enum.Enum):
+    """Controls access permissions for a quiz."""
+
+    PUBLIC = "public"
+    REGISTERED = "registered"
+    PAID = "paid"
+    SUBSCRIPTION = "subscription"
+    PRIVATE = "private"
+
+
 class AttemptStatus(str, enum.Enum):
     """Lifecycle of a user's quiz attempt."""
 
@@ -127,6 +137,9 @@ class Quiz(Base):
     description: Mapped[Optional[str]] = mapped_column(Text)
     language: Mapped[str] = mapped_column(String(16), default="en")
     status: Mapped[QuizStatus] = mapped_column(Enum(QuizStatus), default=QuizStatus.DRAFT)
+    access_type: Mapped[QuizAccessType] = mapped_column(
+        Enum(QuizAccessType), default=QuizAccessType.PUBLIC, nullable=True
+    )
     result_mode: Mapped[ResultMode] = mapped_column(Enum(ResultMode), default=ResultMode.FINAL_SUMMARY)
     time_limit_minutes: Mapped[Optional[int]] = mapped_column(Integer)
     passing_score: Mapped[float] = mapped_column(Float, default=70.0)
