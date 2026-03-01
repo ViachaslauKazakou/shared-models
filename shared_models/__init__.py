@@ -15,6 +15,10 @@ from .models import (
 )
 from .quiz_model import *
 from .documents_models import *
+from .mentor_models import (
+    MentorMentee,
+    MentorMenteeStatus,
+)
 from .schemas import (
     # Category schemas
     CategoryBase,
@@ -60,6 +64,9 @@ __all__ = [
     "MessageEmbedding",
     "UserKnowledgeRecord",
     "UserMessageExample",
+    # Mentor-Mentee models
+    "MentorMentee",
+    "MentorMenteeStatus",
     # Category schemas
     "CategoryBase",
     "CategoryCreate",

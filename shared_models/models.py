@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import (ARRAY, JSON, UUID, Boolean, Column, DateTime, Enum,
+from sqlalchemy import (ARRAY, JSON, UUID, Boolean, Column, DateTime, Enum, Float,
                         ForeignKey, Integer, String, Text)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -168,6 +168,19 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
         doc="User's documents"
+    )
+    # Mentor-Mentee relationships
+    mentees: Mapped[List["MentorMentee"]] = relationship(
+        "MentorMentee",
+        foreign_keys="MentorMentee.mentor_id",
+        back_populates="mentor",
+        cascade="all, delete-orphan",
+    )
+    mentors: Mapped[List["MentorMentee"]] = relationship(
+        "MentorMentee",
+        foreign_keys="MentorMentee.mentee_id",
+        back_populates="mentee",
+        cascade="all, delete-orphan",
     )
 
 
@@ -351,6 +364,28 @@ class UserProfile(Base):
         Enum(LanguageEnum, name="default_language", native_enum=False),
         default=LanguageEnum.en,
         nullable=True,
+    )
+
+    # Mentor fields
+    mentor_bio: Mapped[Optional[str]] = mapped_column(
+        Text, nullable=True, comment="Mentor's biography and specialization"
+    )
+    mentor_rate: Mapped[Optional[float]] = mapped_column(
+        Float, nullable=True, comment="Mentor's hourly rate"
+    )
+    mentor_available: Mapped[Optional[bool]] = mapped_column(
+        Boolean, default=True, nullable=True, comment="Is mentor available for new mentees"
+    )
+    max_mentees: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True, comment="Maximum number of mentees"
+    )
+
+    # Mentee fields
+    learning_goals: Mapped[Optional[str]] = mapped_column(
+        Text, nullable=True, comment="Mentee's learning goals"
+    )
+    preferred_learning_style: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True, comment="Preferred learning style"
     )
 
 
