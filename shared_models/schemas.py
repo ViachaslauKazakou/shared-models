@@ -17,12 +17,13 @@ class MessageStatus(str, PyEnum):
     pending = "pending"
     active = "active"
     blocked = "blocked"
-
+    replied = "replied"
 
 class PrivateMessageStatus(str, PyEnum):
     unread = "unread"
     read = "read"
     deleted = "deleted"
+    replied = "replied"
 
 
 class SubjectBookStatus(str, PyEnum):

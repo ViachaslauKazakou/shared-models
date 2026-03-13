@@ -16,6 +16,7 @@ from shared_models.models import (Category, Embedding, Message,
 from shared_models.quiz_model import *
 from shared_models.documents_models import *
 from shared_models.mentor_models import *
+from shared_models.tutor_models import *
 
 # Добавляем путь к нашему проекту в sys.path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
