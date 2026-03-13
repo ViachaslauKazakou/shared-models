@@ -19,7 +19,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 
-from shared_models.models import Base
+from shared_models.models import Base, User
 
 
 class TopicLevel(str, PyEnum):
@@ -257,4 +257,4 @@ class TutorStudentProgress(Base):
     )
 
     # Relationships
-    user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
+    user: Mapped[User] = relationship("User", foreign_keys=[user_id])
