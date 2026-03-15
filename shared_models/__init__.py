@@ -19,6 +19,25 @@ from .mentor_models import (
     MentorMentee,
     MentorMenteeStatus,
 )
+from .tutor_models import (
+    TutorTopic,
+    TutorSession,
+    TutorMessage,
+    TutorQuestionResult,
+    TutorStudentProgress,
+    TopicLevel,
+    TopicStatus,
+    SessionStatus,
+    MessageRole,
+    MessageType,
+    LessonPhase,
+)
+from .rag_models import (
+    UserTopicKnowledgeChunk,
+    TutorRAGUsage,
+    RAGSourceType,
+    RAGUsagePurpose,
+)
 from .schemas import (
     # Category schemas
     CategoryBase,
@@ -67,6 +86,23 @@ __all__ = [
     # Mentor-Mentee models
     "MentorMentee",
     "MentorMenteeStatus",
+    # Tutor models
+    "TutorTopic",
+    "TutorSession",
+    "TutorMessage",
+    "TutorQuestionResult",
+    "TutorStudentProgress",
+    "TopicLevel",
+    "TopicStatus",
+    "SessionStatus",
+    "MessageRole",
+    "MessageType",
+    "LessonPhase",
+    # RAG models
+    "UserTopicKnowledgeChunk",
+    "TutorRAGUsage",
+    "RAGSourceType",
+    "RAGUsagePurpose",
     # Category schemas
     "CategoryBase",
     "CategoryCreate",
