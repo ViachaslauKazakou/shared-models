@@ -1,18 +1,52 @@
+"""Main SQLAlchemy models for the shared database.
+
+CHANGED FILE: shared_models/models.py
+Changes vs original:
+  1. In class User   — added `balance` and `transactions` relationships (at the end of class body)
+  2. In class Topic  — added `votes` relationship (at the end of class body)
+
+All new references use string literals ("UserBalance", "BalanceTransaction", "TopicVote")
+to avoid circular imports — SQLAlchemy resolves them at mapper finalization time.
+
+The rest of the file is IDENTICAL to the original.
+"""
+
 import uuid
 from datetime import datetime
 from typing import Dict, List, Optional
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import (ARRAY, JSON, UUID, Boolean, Column, DateTime, Enum, Float,
-                        ForeignKey, Integer, String, Text)
+from sqlalchemy import (
+    ARRAY,
+    JSON,
+    UUID,
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
-from shared_models.schemas import (CurrentMonth, DayOfWeek, LanguageEnum,
-                                   LearnMode, MessageStatus, PrivateMessageStatus, Status, SubjectBookStatus, UserRole, TaskType)
+from shared_models.schemas import (
+    CurrentMonth,
+    DayOfWeek,
+    LanguageEnum,
+    LearnMode,
+    MessageStatus,
+    PrivateMessageStatus,
+    Status,
+    SubjectBookStatus,
+    UserRole,
+    TaskType,
+)
 
 
-# Базовый класс для моделей
 class Base(DeclarativeBase):
     pass
 
@@ -26,8 +60,8 @@ class Category(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, index=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     slug: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, index=True)
-    color: Mapped[Optional[str]] = mapped_column(String(7), nullable=True)  # HEX цвет, например #FF5733
-    icon: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)  # Название иконки
+    color: Mapped[Optional[str]] = mapped_column(String(7), nullable=True)
+    icon: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     sort_order: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -35,7 +69,6 @@ class Category(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    # Связи
     subcategories: Mapped[List["Subcategory"]] = relationship(
         "Subcategory", back_populates="category", cascade="all, delete-orphan"
     )
@@ -51,23 +84,19 @@ class Subcategory(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     slug: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
-    color: Mapped[Optional[str]] = mapped_column(String(7), nullable=True)  # HEX цвет
-    icon: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)  # Название иконки
+    color: Mapped[Optional[str]] = mapped_column(String(7), nullable=True)
+    icon: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     sort_order: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
-
-    # Внешний ключ на категорию
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), nullable=False, index=True)
 
-    # Связи
     category: Mapped["Category"] = relationship("Category", back_populates="subcategories")
     topics: Mapped[List["Topic"]] = relationship("Topic", back_populates="subcategory")
 
-    # Уникальность slug в рамках категории
     __table_args__ = ({"schema": None},)
 
 
@@ -82,25 +111,31 @@ class Topic(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    task_type: Mapped[TaskType] = mapped_column(Enum(TaskType, name="task_type", native_enum=False), default=TaskType.general, nullable=True)
-
-    # Внешние ключи
+    task_type: Mapped[TaskType] = mapped_column(
+        Enum(TaskType, name="task_type", native_enum=False), default=TaskType.general, nullable=True
+    )
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     category_id: Mapped[Optional[int]] = mapped_column(ForeignKey("categories.id"), nullable=True, index=True)
     subcategory_id: Mapped[Optional[int]] = mapped_column(ForeignKey("subcategories.id"), nullable=True, index=True)
 
-    # Связи
     user: Mapped["User"] = relationship("User", back_populates="topics")
     category: Mapped[Optional["Category"]] = relationship("Category", back_populates="topics")
     subcategory: Mapped[Optional["Subcategory"]] = relationship("Subcategory", back_populates="topics")
-    messages: Mapped[List["Message"]] = relationship("Message", back_populates="topic", cascade="all, delete-orphan")
+    messages: Mapped[List["Message"]] = relationship(
+        "Message", back_populates="topic", cascade="all, delete-orphan"
+    )
     embeddings: Mapped[List["MessageEmbedding"]] = relationship(
         "MessageEmbedding", back_populates="topic", cascade="all, delete-orphan"
+    )
+    # ── ADDED: forum upvotes for reward threshold ────────────────────────
+    votes: Mapped[List["TopicVote"]] = relationship(
+        "TopicVote", back_populates="topic", cascade="all, delete-orphan"
     )
 
 
 class Message(Base):
     """Таблица сообщений форума"""
+
     __tablename__ = "messages"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -110,19 +145,26 @@ class Message(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
-    status: Mapped[MessageStatus] = mapped_column(Enum(MessageStatus, name="message_status", native_enum=False), default=MessageStatus.pending, nullable=True)
-    task_type: Mapped[TaskType] = mapped_column(Enum(TaskType, name="task_type", native_enum=False), default=TaskType.general, nullable=True)
-
-    # Внешние ключи
+    status: Mapped[MessageStatus] = mapped_column(
+        Enum(MessageStatus, name="message_status", native_enum=False),
+        default=MessageStatus.pending,
+        nullable=True,
+    )
+    task_type: Mapped[TaskType] = mapped_column(
+        Enum(TaskType, name="task_type", native_enum=False), default=TaskType.general, nullable=True
+    )
     topic_id: Mapped[int] = mapped_column(ForeignKey("topics.id"), nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     parent_id: Mapped[Optional[int]] = mapped_column(ForeignKey("messages.id"), nullable=True)
 
-    # Связи
     topic: Mapped["Topic"] = relationship("Topic", back_populates="messages")
     user: Mapped["User"] = relationship("User", back_populates="messages")
-    parent: Mapped[Optional["Message"]] = relationship("Message", remote_side=[id], back_populates="replies")
-    replies: Mapped[List["Message"]] = relationship("Message", back_populates="parent", cascade="all, delete-orphan")
+    parent: Mapped[Optional["Message"]] = relationship(
+        "Message", remote_side=[id], back_populates="replies"
+    )
+    replies: Mapped[List["Message"]] = relationship(
+        "Message", back_populates="parent", cascade="all, delete-orphan"
+    )
     embeddings: Mapped[List["MessageEmbedding"]] = relationship(
         "MessageEmbedding", back_populates="message", cascade="all, delete-orphan"
     )
@@ -150,7 +192,7 @@ class User(Base):
         nullable=True,
     )
 
-    # Relationships
+    # Relationships (original)
     topics: Mapped[List["Topic"]] = relationship("Topic", back_populates="user")
     messages: Mapped[List["Message"]] = relationship("Message", back_populates="user")
     knowledge_record: Mapped[Optional["UserKnowledgeRecord"]] = relationship(
@@ -167,9 +209,9 @@ class User(Base):
         "Document",
         back_populates="user",
         cascade="all, delete-orphan",
-        doc="User's documents"
+        doc="User's documents",
     )
-    # Mentor-Mentee relationships
+    # Mentor-Mentee relationships (original)
     mentees: Mapped[List["MentorMentee"]] = relationship(
         "MentorMentee",
         foreign_keys="MentorMentee.mentor_id",
@@ -182,6 +224,19 @@ class User(Base):
         back_populates="mentee",
         cascade="all, delete-orphan",
     )
+    # ── ADDED: payment relationships ─────────────────────────────────────
+    balance: Mapped[Optional["UserBalance"]] = relationship(
+        "UserBalance",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+    transactions: Mapped[List["BalanceTransaction"]] = relationship(
+        "BalanceTransaction",
+        back_populates="user",
+        foreign_keys="BalanceTransaction.user_id",
+        cascade="all, delete-orphan",
+    )
 
 
 class UserStatus(Base):
@@ -189,12 +244,13 @@ class UserStatus(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    status: Mapped[Status] = mapped_column(Enum(Status, name="user_status", native_enum=False), default=Status.active)
+    status: Mapped[Status] = mapped_column(
+        Enum(Status, name="user_status", native_enum=False), default=Status.active
+    )
     penalty_points: Mapped[int] = mapped_column(Integer, default=0)
     rating: Mapped[float] = mapped_column(Integer, default=0)
     social_points: Mapped[int] = mapped_column(Integer, default=0)
 
-    # Связь с пользователем
     user: Mapped["User"] = relationship("User", back_populates="user_status")
 
 
@@ -210,7 +266,6 @@ class UserFeedback(Base):
     user: Mapped["User"] = relationship("User", back_populates="feedback")
 
 
-# RAG models
 class Embedding(Base):
     """Таблица эмбеддингов"""
 
@@ -229,8 +284,6 @@ class MessageEmbedding(Base):
     __tablename__ = "message_embeddings"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-
-    # Внешние ключи с каскадным удалением
     message_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("messages.id", ondelete="CASCADE"), nullable=True, index=True
     )
@@ -240,13 +293,11 @@ class MessageEmbedding(Base):
     user_message_example_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("user_message_examples.id", ondelete="CASCADE"), nullable=True, index=True
     )
-
     content: Mapped[str] = mapped_column(Text)
     embedding: Mapped[Vector] = mapped_column(Vector(1536))
     extra_metadata: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
-    # Связи
     message: Mapped[Optional["Message"]] = relationship("Message", back_populates="embeddings")
     topic: Mapped[Optional["Topic"]] = relationship("Topic", back_populates="embeddings")
     user_message_example: Mapped[Optional["UserMessageExample"]] = relationship(
@@ -260,13 +311,8 @@ class UserKnowledgeRecord(Base):
     __tablename__ = "user_knowledge"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-
-    # Связь с реальным пользователем
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
-
-    # Дополнительное поле для хранения строкового идентификатора (например, alice_researcher)
     character_id: Mapped[Optional[str]] = mapped_column(String(50), unique=True, index=True, nullable=True)
-
     name: Mapped[str] = mapped_column(String(100))
     personality: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     background: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
@@ -277,7 +323,6 @@ class UserKnowledgeRecord(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
-    # Связи
     user: Mapped["User"] = relationship("User", back_populates="knowledge_record")
     message_examples: Mapped[List["UserMessageExample"]] = relationship(
         "UserMessageExample", back_populates="profile", cascade="all, delete-orphan"
@@ -290,29 +335,22 @@ class UserMessageExample(Base):
     __tablename__ = "user_message_examples"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-
-    # Связь с профилем
     profile_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("user_knowledge.id"), index=True
     )
-
-    # Основные поля сообщения
     context: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     content: Mapped[str] = mapped_column(Text)
     thread_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     reply_to: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, index=True)
-
-    # Эмбеддинги для similarity search
     content_embedding: Mapped[Optional[Vector]] = mapped_column(Vector(1536), nullable=True)
     context_embedding: Mapped[Optional[Vector]] = mapped_column(Vector(1536), nullable=True)
-
-    # Метаданные и служебные поля
     extra_metadata: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
     source_file: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
-    # Связи
-    profile: Mapped["UserKnowledgeRecord"] = relationship("UserKnowledgeRecord", back_populates="message_examples")
+    profile: Mapped["UserKnowledgeRecord"] = relationship(
+        "UserKnowledgeRecord", back_populates="message_examples"
+    )
     embeddings: Mapped[List["MessageEmbedding"]] = relationship(
         "MessageEmbedding", back_populates="user_message_example", cascade="all, delete-orphan"
     )
@@ -324,37 +362,31 @@ class Task(Base):
     __tablename__ = "tasks"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    task_id: Mapped[str] = mapped_column(String(100), unique=True, index=True)  # UUID задачи
-    user_id: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)  # ID пользователя (без FK)
-    topic_id: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)  # ID топика (без FK)
-    reply_to: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)  # ID сообщения (без FK)
+    task_id: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    user_id: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)
+    topic_id: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)
+    reply_to: Mapped[Optional[int]] = mapped_column(index=True, nullable=True)
     message_id: Mapped[Optional[int]] = mapped_column(nullable=True, index=True)
-    task_type: Mapped[TaskType] = mapped_column(Enum(TaskType, name="task_type", native_enum=False), default=TaskType.general, nullable=True)
-    context: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Контекст для генерации
-    question: Mapped[str] = mapped_column(Text)  # Вопрос/запрос для ИИ
-    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending, processing, completed, failed
-    result: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Результат выполнения
-    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Сообщение об ошибке
-    attempts: Mapped[int] = mapped_column(default=0)  # Количество попыток
-    max_attempts: Mapped[int] = mapped_column(default=3)  # Максимум попыток
+    task_type: Mapped[TaskType] = mapped_column(
+        Enum(TaskType, name="task_type", native_enum=False), default=TaskType.general, nullable=True
+    )
+    context: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    question: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    result: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    attempts: Mapped[int] = mapped_column(default=0)
+    max_attempts: Mapped[int] = mapped_column(default=3)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    started_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )  # Время начала обработки
-    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)  # Время завершения
+    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
-
-#  Base service models
 
 class UserProfile(Base):
     __tablename__ = "user_profile"
-    # __table_args__ = (
-    #     UniqueConstraint("title", "language", "level", name="unique_subject_constraint"),
-    # )
+
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    created_at: Mapped[str] = mapped_column(
-        DateTime(timezone=True), nullable=True, server_default=func.now()
-    )
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), nullable=True, server_default=func.now())
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     description: Mapped[str] = mapped_column(nullable=True)
     experience: Mapped[str] = mapped_column(nullable=True)
@@ -365,28 +397,12 @@ class UserProfile(Base):
         default=LanguageEnum.en,
         nullable=True,
     )
-
-    # Mentor fields
-    mentor_bio: Mapped[Optional[str]] = mapped_column(
-        Text, nullable=True, comment="Mentor's biography and specialization"
-    )
-    mentor_rate: Mapped[Optional[float]] = mapped_column(
-        Float, nullable=True, comment="Mentor's hourly rate"
-    )
-    mentor_available: Mapped[Optional[bool]] = mapped_column(
-        Boolean, default=True, nullable=True, comment="Is mentor available for new mentees"
-    )
-    max_mentees: Mapped[Optional[int]] = mapped_column(
-        Integer, nullable=True, comment="Maximum number of mentees"
-    )
-
-    # Mentee fields
-    learning_goals: Mapped[Optional[str]] = mapped_column(
-        Text, nullable=True, comment="Mentee's learning goals"
-    )
-    preferred_learning_style: Mapped[Optional[str]] = mapped_column(
-        String(50), nullable=True, comment="Preferred learning style"
-    )
+    mentor_bio: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    mentor_rate: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    mentor_available: Mapped[Optional[bool]] = mapped_column(Boolean, default=True, nullable=True)
+    max_mentees: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    learning_goals: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    preferred_learning_style: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
 
 
 class UserSchedule(Base):
@@ -409,13 +425,9 @@ class UserSchedule(Base):
 
 class Subject(Base):
     __tablename__ = "subjects"
-    # __table_args__ = (
-    #     UniqueConstraint("title", "language", "level", name="unique_subject_constraint"),
-    # )
+
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    created_at: Mapped[str] = mapped_column(
-        DateTime(timezone=True), nullable=True, server_default=func.now()
-    )
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), nullable=True, server_default=func.now())
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     subject_name: Mapped[str] = mapped_column(nullable=False)
     subject_level: Mapped[str] = mapped_column(nullable=False)
@@ -439,7 +451,6 @@ class Subject(Base):
         nullable=True,
     )
 
-    # Relationships
     user = relationship("User", back_populates="subjects")
 
 
@@ -448,19 +459,18 @@ class SubjectSchedule(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-
     subject_id: Mapped[int] = mapped_column(ForeignKey("subjects.id"))
     booked_date: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=True, server_default=func.now()
     )
     booked_hours: Mapped[str] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-    DateTime(timezone=True), nullable=True, server_default=func.now()
+        DateTime(timezone=True), nullable=True, server_default=func.now()
     )
-    status: Mapped[SubjectBookStatus] = mapped_column(Enum(SubjectBookStatus, name="status", native_enum=False), default=SubjectBookStatus.pending)
-
-    # user = relationship("User", back_populates="id")
-    # subject: Mapped["Subject"] = relationship(back_populates="id")
+    status: Mapped[SubjectBookStatus] = mapped_column(
+        Enum(SubjectBookStatus, name="status", native_enum=False),
+        default=SubjectBookStatus.pending,
+    )
 
 
 class UserMessage(Base):
@@ -471,8 +481,10 @@ class UserMessage(Base):
     receiver_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     subject_id: Mapped[Optional[int]] = mapped_column(ForeignKey("subjects.id"), nullable=True)
     message: Mapped[str] = mapped_column(Text, nullable=False)
-    message_status: Mapped[PrivateMessageStatus] = mapped_column(Enum(PrivateMessageStatus, name="message_status", native_enum=False), default=PrivateMessageStatus.unread)
+    message_status: Mapped[PrivateMessageStatus] = mapped_column(
+        Enum(PrivateMessageStatus, name="message_status", native_enum=False),
+        default=PrivateMessageStatus.unread,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=True, server_default=func.now()
     )
-

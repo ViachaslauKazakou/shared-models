@@ -13,10 +13,14 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Настройки удаленной БД
-REMOTE_DB_HOST="learn-service-test-postgres.cil0uc6gcdkj.us-east-1.rds.amazonaws.com"
+REMOTE_DB_HOST="simple-ec2-db.cecurbs9fk6o.us-east-1.rds.amazonaws.com"
 REMOTE_DB_PORT="5432"
 REMOTE_DB_USER="postgres"
-REMOTE_DB_NAME="learnservice"
+REMOTE_DB_NAME="learnservicedatabase"
+PGPASSWORD="vk-db-postgres"
+
+# Префикс для запуска alembic (poetry run / напрямую)
+ALEMBIC_RUNNER=()
 
 echo -e "${BLUE}🚀 Скрипт применения миграций к удаленной БД${NC}"
 echo -e "${BLUE}=================================================${NC}"
@@ -24,9 +28,16 @@ echo -e "${YELLOW}База данных:${NC} ${REMOTE_DB_HOST}:${REMOTE_DB_PORT
 echo -e "${YELLOW}Пользователь:${NC} ${REMOTE_DB_USER}"
 echo ""
 
-# Проверка наличия Poetry
-if ! command -v poetry &> /dev/null; then
-    echo -e "${RED}❌ Poetry не найден. Установите Poetry для продолжения.${NC}"
+# Определяем, как запускать alembic
+if command -v poetry &> /dev/null; then
+    ALEMBIC_RUNNER=(poetry run)
+    echo -e "${GREEN}✅ Найден Poetry. Alembic будет запускаться через Poetry.${NC}"
+elif command -v alembic &> /dev/null; then
+    ALEMBIC_RUNNER=()
+    echo -e "${YELLOW}⚠️  Poetry не найден. Alembic будет запускаться напрямую.${NC}"
+else
+    echo -e "${RED}❌ Не найден ни Poetry, ни Alembic.${NC}"
+    echo -e "${RED}Установите Poetry или Alembic для продолжения.${NC}"
     exit 1
 fi
 
@@ -35,6 +46,15 @@ if ! command -v psql &> /dev/null; then
     echo -e "${RED}❌ psql не найден. Установите PostgreSQL client для продолжения.${NC}"
     exit 1
 fi
+
+# Унифицированный запуск Alembic
+run_alembic() {
+    if [ ${#ALEMBIC_RUNNER[@]} -gt 0 ]; then
+        "${ALEMBIC_RUNNER[@]}" alembic -c alembic.remote.ini "$@"
+    else
+        alembic -c alembic.remote.ini "$@"
+    fi
+}
 
 # Функция для проверки подключения к БД
 check_db_connection() {
@@ -64,11 +84,11 @@ check_migration_status() {
     
     # Проверяем текущую версию миграции
     echo -e "${BLUE}Текущая версия миграции в удаленной БД:${NC}"
-    poetry run alembic -c alembic.remote.ini current || echo -e "${YELLOW}Миграции еще не применены${NC}"
+    run_alembic current || echo -e "${YELLOW}Миграции еще не применены${NC}"
     
     # Показываем доступные миграции
     echo -e "${BLUE}Доступные миграции:${NC}"
-    poetry run alembic -c alembic.remote.ini heads
+    run_alembic heads
 }
 
 # Функция для применения миграций
@@ -76,7 +96,7 @@ apply_migrations() {
     echo -e "${YELLOW}🔄 Применение миграций к удаленной БД...${NC}"
     
     # Применяем миграции используя отдельный конфигурационный файл
-    if poetry run alembic -c alembic.remote.ini upgrade head; then
+    if run_alembic upgrade head; then
         echo -e "${GREEN}✅ Миграции успешно применены к удаленной БД${NC}"
     else
         echo -e "${RED}❌ Ошибка при применении миграций${NC}"
@@ -157,14 +177,6 @@ main() {
     esac
 }
 
-# Активация Poetry окружения и запуск
-echo -e "${YELLOW}🔧 Активация Poetry окружения...${NC}"
-if poetry env info &>/dev/null; then
-    echo -e "${GREEN}✅ Poetry окружение активировано${NC}"
-    echo ""
-    main
-else
-    echo -e "${RED}❌ Ошибка активации Poetry окружения${NC}"
-    echo -e "${RED}Убедитесь, что вы находитесь в директории проекта с pyproject.toml${NC}"
-    exit 1
-fi
+# Запуск главного меню
+echo ""
+main

@@ -1,4 +1,8 @@
-"""Shared models package."""
+"""Shared models package.
+
+CHANGED FILE: shared_models/__init__.py
+Changes vs original: added payment_models imports and exports.
+"""
 
 from .models import (
     Base,
@@ -38,6 +42,14 @@ from .rag_models import (
     RAGSourceType,
     RAGUsagePurpose,
 )
+# ── NEW: payment models ──────────────────────────────────────────────────────
+from .payment_models import (
+    UserBalance,
+    BalanceTransaction,
+    TopupRequest,
+    WithdrawRequest,
+    TopicVote,
+)
 from .schemas import (
     # Category schemas
     CategoryBase,
@@ -67,6 +79,19 @@ from .schemas import (
     MessageCreate,
     MessageUpdate,
     MessageResponse,
+    # ── NEW: payment enums & schemas ────────────────────────────────────────
+    TransactionType,
+    TransactionStatus,
+    WithdrawRequestStatus,
+    BalanceResponse,
+    TransactionResponse,
+    AdminBalanceAdjustRequest,
+    TopupRequestCreate,
+    TopupRequestResponse,
+    WithdrawRequestCreate,
+    WithdrawRequestResponse,
+    InternalTransferRequest,
+    TopicVoteResponse,
 )
 from .database import engine, SessionLocal, get_db
 
@@ -103,6 +128,12 @@ __all__ = [
     "TutorRAGUsage",
     "RAGSourceType",
     "RAGUsagePurpose",
+    # Payment models (NEW)
+    "UserBalance",
+    "BalanceTransaction",
+    "TopupRequest",
+    "WithdrawRequest",
+    "TopicVote",
     # Category schemas
     "CategoryBase",
     "CategoryCreate",
@@ -131,6 +162,19 @@ __all__ = [
     "MessageCreate",
     "MessageUpdate",
     "MessageResponse",
+    # Payment enums & schemas (NEW)
+    "TransactionType",
+    "TransactionStatus",
+    "WithdrawRequestStatus",
+    "BalanceResponse",
+    "TransactionResponse",
+    "AdminBalanceAdjustRequest",
+    "TopupRequestCreate",
+    "TopupRequestResponse",
+    "WithdrawRequestCreate",
+    "WithdrawRequestResponse",
+    "InternalTransferRequest",
+    "TopicVoteResponse",
     # Database
     "engine",
     "SessionLocal",
