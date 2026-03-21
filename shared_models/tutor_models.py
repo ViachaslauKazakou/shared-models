@@ -258,3 +258,8 @@ class TutorStudentProgress(Base):
 
     # Relationships
     user: Mapped[User] = relationship("User", foreign_keys=[user_id])
+    anti_cheat_config: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSON,
+        nullable=True,
+        comment="Anti-cheat configuration for exam mode: enabled, methods, warnings_limit, etc."
+    )

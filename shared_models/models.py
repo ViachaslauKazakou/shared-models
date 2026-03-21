@@ -13,7 +13,7 @@ The rest of the file is IDENTICAL to the original.
 
 import uuid
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
@@ -488,3 +488,48 @@ class UserMessage(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=True, server_default=func.now()
     )
+
+
+class AntiCheatIncident(Base):
+    """Record of a detected anti-cheat violation during a session."""
+
+    __tablename__ = "anti_cheat_incidents"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    
+    # Session identification
+    session_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    
+    # Session context (which service: ai_tutor or quiz)
+    session_type: Mapped[str] = mapped_column(
+        String(32), nullable=False,
+        comment="Type of session: 'ai_tutor' or 'quiz'"
+    )
+    
+    # Incident details
+    incident_type: Mapped[str] = mapped_column(
+        String(64), nullable=False,
+        comment="Type of violation: 'focus_loss', 'dev_tools_detected', 'screenshot_blocked', etc."
+    )
+    
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    # Keep DB column name as `metadata`, but use a non-reserved Python attribute name.
+    incident_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        "metadata",
+        JSON,
+        nullable=True,
+        comment="Additional context: user_agent, ip, browser_info, etc."
+    )
+    
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+        index=True
+    )
+    
+    def __repr__(self) -> str:
+        return f"<AntiCheatIncident(id={self.id}, session_id={self.session_id}, type={self.incident_type})>"

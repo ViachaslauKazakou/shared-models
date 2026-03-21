@@ -156,6 +156,11 @@ class Quiz(Base):
     updated_at: Mapped[str] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+    anti_cheat_config: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSON,
+        nullable=True,
+        comment="Anti-cheat configuration for exam mode: enabled, methods, warnings_limit, etc."
+    )
 
     creator = relationship("User")
     course_items = relationship(
