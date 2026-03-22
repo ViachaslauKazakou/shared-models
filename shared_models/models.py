@@ -191,6 +191,7 @@ class User(Base):
         default=Status.pending,
         nullable=True,
     )
+    session_token: Mapped[Optional[str]] = mapped_column(Text, nullable=True, unique=False)
 
     # Relationships (original)
     topics: Mapped[List["Topic"]] = relationship("Topic", back_populates="user")
